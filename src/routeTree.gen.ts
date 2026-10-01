@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as PostEntrenoRouteImport } from './routes/post-entreno'
 import { Route as WellnessRouteImport } from './routes/wellness'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
+import { Route as AuthenticatedPlantelRouteImport } from './routes/_authenticated/plantel'
 import { Route as AuthenticatedJugadorIndexRouteImport } from './routes/_authenticated/jugador.index'
 import { Route as AuthenticatedJugadorIdRouteImport } from './routes/_authenticated/jugador.$id'
 
@@ -47,6 +48,11 @@ const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
   path: '/panel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPlantelRoute = AuthenticatedPlantelRouteImport.update({
+  id: '/plantel',
+  path: '/plantel',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedJugadorIndexRoute =
   AuthenticatedJugadorIndexRouteImport.update({
     id: '/jugador/',
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/post-entreno': typeof PostEntrenoRoute
   '/wellness': typeof WellnessRoute
   '/panel': typeof AuthenticatedPanelRoute
+  '/plantel': typeof AuthenticatedPlantelRoute
   '/jugador/$id': typeof AuthenticatedJugadorIdRoute
   '/jugador/': typeof AuthenticatedJugadorIndexRoute
 }
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/post-entreno': typeof PostEntrenoRoute
   '/wellness': typeof WellnessRoute
   '/panel': typeof AuthenticatedPanelRoute
+  '/plantel': typeof AuthenticatedPlantelRoute
   '/jugador/$id': typeof AuthenticatedJugadorIdRoute
   '/jugador': typeof AuthenticatedJugadorIndexRoute
 }
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/post-entreno': typeof PostEntrenoRoute
   '/wellness': typeof WellnessRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
+  '/_authenticated/plantel': typeof AuthenticatedPlantelRoute
   '/_authenticated/jugador/$id': typeof AuthenticatedJugadorIdRoute
   '/_authenticated/jugador/': typeof AuthenticatedJugadorIndexRoute
 }
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/post-entreno'
     | '/wellness'
     | '/panel'
+    | '/plantel'
     | '/jugador/$id'
     | '/jugador/'
   fileRoutesByTo: FileRoutesByTo
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
     | '/post-entreno'
     | '/wellness'
     | '/panel'
+    | '/plantel'
     | '/jugador/$id'
     | '/jugador'
   id:
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '/post-entreno'
     | '/wellness'
     | '/_authenticated/panel'
+    | '/_authenticated/plantel'
     | '/_authenticated/jugador/$id'
     | '/_authenticated/jugador/'
   fileRoutesById: FileRoutesById
@@ -171,6 +183,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPanelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/plantel': {
+      id: '/_authenticated/plantel'
+      path: '/plantel'
+      fullPath: '/plantel'
+      preLoaderRoute: typeof AuthenticatedPlantelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/jugador/': {
       id: '/_authenticated/jugador/'
       path: '/jugador'
@@ -190,12 +209,14 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
+  AuthenticatedPlantelRoute: typeof AuthenticatedPlantelRoute
   AuthenticatedJugadorIdRoute: typeof AuthenticatedJugadorIdRoute
   AuthenticatedJugadorIndexRoute: typeof AuthenticatedJugadorIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
+  AuthenticatedPlantelRoute: AuthenticatedPlantelRoute,
   AuthenticatedJugadorIdRoute: AuthenticatedJugadorIdRoute,
   AuthenticatedJugadorIndexRoute: AuthenticatedJugadorIndexRoute,
 }
