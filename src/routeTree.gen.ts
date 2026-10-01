@@ -10,33 +10,133 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as PostEntrenoRouteImport } from './routes/post-entreno'
+import { Route as WellnessRouteImport } from './routes/wellness'
+import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
+import { Route as AuthenticatedPlantelRouteImport } from './routes/_authenticated/plantel'
+import { Route as AuthenticatedJugadorIndexRouteImport } from './routes/_authenticated/jugador.index'
+import { Route as AuthenticatedJugadorIdRouteImport } from './routes/_authenticated/jugador.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PostEntrenoRoute = PostEntrenoRouteImport.update({
+  id: '/post-entreno',
+  path: '/post-entreno',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WellnessRoute = WellnessRouteImport.update({
+  id: '/wellness',
+  path: '/wellness',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
+  id: '/panel',
+  path: '/panel',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPlantelRoute = AuthenticatedPlantelRouteImport.update({
+  id: '/plantel',
+  path: '/plantel',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedJugadorIndexRoute =
+  AuthenticatedJugadorIndexRouteImport.update({
+    id: '/jugador/',
+    path: '/jugador/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedJugadorIdRoute = AuthenticatedJugadorIdRouteImport.update({
+  id: '/jugador/$id',
+  path: '/jugador/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/post-entreno': typeof PostEntrenoRoute
+  '/wellness': typeof WellnessRoute
+  '/panel': typeof AuthenticatedPanelRoute
+  '/plantel': typeof AuthenticatedPlantelRoute
+  '/jugador/$id': typeof AuthenticatedJugadorIdRoute
+  '/jugador/': typeof AuthenticatedJugadorIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/post-entreno': typeof PostEntrenoRoute
+  '/wellness': typeof WellnessRoute
+  '/panel': typeof AuthenticatedPanelRoute
+  '/plantel': typeof AuthenticatedPlantelRoute
+  '/jugador/$id': typeof AuthenticatedJugadorIdRoute
+  '/jugador': typeof AuthenticatedJugadorIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/post-entreno': typeof PostEntrenoRoute
+  '/wellness': typeof WellnessRoute
+  '/_authenticated/panel': typeof AuthenticatedPanelRoute
+  '/_authenticated/plantel': typeof AuthenticatedPlantelRoute
+  '/_authenticated/jugador/$id': typeof AuthenticatedJugadorIdRoute
+  '/_authenticated/jugador/': typeof AuthenticatedJugadorIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/post-entreno'
+    | '/wellness'
+    | '/panel'
+    | '/plantel'
+    | '/jugador/$id'
+    | '/jugador/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/post-entreno'
+    | '/wellness'
+    | '/panel'
+    | '/plantel'
+    | '/jugador/$id'
+    | '/jugador'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/post-entreno'
+    | '/wellness'
+    | '/_authenticated/panel'
+    | '/_authenticated/plantel'
+    | '/_authenticated/jugador/$id'
+    | '/_authenticated/jugador/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  PostEntrenoRoute: typeof PostEntrenoRoute
+  WellnessRoute: typeof WellnessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +148,88 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/post-entreno': {
+      id: '/post-entreno'
+      path: '/post-entreno'
+      fullPath: '/post-entreno'
+      preLoaderRoute: typeof PostEntrenoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wellness': {
+      id: '/wellness'
+      path: '/wellness'
+      fullPath: '/wellness'
+      preLoaderRoute: typeof WellnessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/panel': {
+      id: '/_authenticated/panel'
+      path: '/panel'
+      fullPath: '/panel'
+      preLoaderRoute: typeof AuthenticatedPanelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/plantel': {
+      id: '/_authenticated/plantel'
+      path: '/plantel'
+      fullPath: '/plantel'
+      preLoaderRoute: typeof AuthenticatedPlantelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/jugador/': {
+      id: '/_authenticated/jugador/'
+      path: '/jugador'
+      fullPath: '/jugador/'
+      preLoaderRoute: typeof AuthenticatedJugadorIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/jugador/$id': {
+      id: '/_authenticated/jugador/$id'
+      path: '/jugador/$id'
+      fullPath: '/jugador/$id'
+      preLoaderRoute: typeof AuthenticatedJugadorIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
+  AuthenticatedPlantelRoute: typeof AuthenticatedPlantelRoute
+  AuthenticatedJugadorIdRoute: typeof AuthenticatedJugadorIdRoute
+  AuthenticatedJugadorIndexRoute: typeof AuthenticatedJugadorIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedPanelRoute: AuthenticatedPanelRoute,
+  AuthenticatedPlantelRoute: AuthenticatedPlantelRoute,
+  AuthenticatedJugadorIdRoute: AuthenticatedJugadorIdRoute,
+  AuthenticatedJugadorIndexRoute: AuthenticatedJugadorIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  PostEntrenoRoute: PostEntrenoRoute,
+  WellnessRoute: WellnessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
