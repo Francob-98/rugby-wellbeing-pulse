@@ -46,11 +46,11 @@ function PlantelPage() {
   const [filter, setFilter] = useState("");
   const refresh = () => qc.invalidateQueries({ queryKey: ["players"] });
 
-  const add = async () => {
+  const add = async (): Promise<void> => {
     const list = names.split("\n").map((n) => n.trim()).filter(Boolean).slice(0, 100);
-    if (!list.length) return toast.error("Escribí al menos un nombre");
+    if (!list.length) { toast.error("Escribí al menos un nombre"); return; }
     const { error } = await supabase.from("players").insert(list.map((full_name) => ({ full_name: full_name.slice(0, 100), team, position: position.trim() || null })));
-    if (error) return toast.error("No se pudo guardar");
+    if (error) { toast.error("No se pudo guardar"); return; }
     toast.success(`${list.length} jugador(es) agregados`);
     setNames("");
     refresh();
