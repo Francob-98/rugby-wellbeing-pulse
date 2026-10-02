@@ -14,7 +14,7 @@ export function Panel({ title, action, children, className }: { title: string; a
   );
 }
 
-export function Kpi({ label, value, sub, tone }: { label: string; value: ReactNode; sub?: string; tone?: "ok" | "warn" | "bad" }) {
+export function Kpi({ label, value, sub, tone }: { label: string; value: ReactNode; sub?: string | undefined; tone?: "ok" | "warn" | "bad" | undefined }) {
   return (
     <div className="rounded-lg border border-border bg-card p-4">
       <div className="font-display text-xs uppercase tracking-widest text-muted-foreground">{label}</div>

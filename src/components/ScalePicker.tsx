@@ -8,7 +8,7 @@ interface ScalePickerProps {
   max?: number;
   lowLabel: string;
   highLabel: string;
-  hint?: string;
+  hint?: string | undefined;
 }
 
 export function ScalePicker({ label, value, onChange, min = 1, max = 5, lowLabel, highLabel, hint }: ScalePickerProps) {

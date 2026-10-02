@@ -102,10 +102,10 @@ export function BodyMap({ value, onChange, heat, className }: BodyMapProps) {
         {zones.map((z) => {
           let fill = "var(--body-zone)";
           let opacity = 1;
-          if (value && value[z.id]) fill = levelFill(value[z.id]);
+          if (value && value[z.id]) fill = levelFill(value[z.id]!);
           if (heat && heat[z.id]) {
             fill = "var(--pain-3)";
-            opacity = 0.25 + 0.75 * (heat[z.id] / heatMax);
+            opacity = 0.25 + 0.75 * ((heat[z.id] ?? 0) / heatMax);
           }
           return (
             <ShapeEl

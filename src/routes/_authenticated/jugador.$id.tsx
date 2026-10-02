@@ -32,7 +32,7 @@ function PlayerPage() {
     const w = data?.wellness ?? [];
     const s = data?.sessions ?? [];
     const range = dateRange(days);
-    const start = range[0];
+    const start = range[0]!;
     const wR = w.filter((e) => e.entry_date >= start);
     const sR = s.filter((e) => e.entry_date >= start);
     const daily = range.map((d) => {

@@ -40,11 +40,11 @@ function WellnessPage() {
 
   const set = (k: keyof Scores) => (v: number) => setS((p) => ({ ...p, [k]: v }));
 
-  const submit = async () => {
+  const submit = async (): Promise<void> => {
     const h = Number(hours);
-    if (!playerId) return toast.error("Elegí tu nombre");
-    if (Object.values(s).some((v) => v == null)) return toast.error("Completá todas las escalas");
-    if (!Number.isFinite(h) || h < 0 || h > 16) return toast.error("Horas de sueño inválidas");
+    if (!playerId) { toast.error("Elegí tu nombre"); return; }
+    if (Object.values(s).some((v) => v == null)) { toast.error("Completá todas las escalas"); return; }
+    if (!Number.isFinite(h) || h < 0 || h > 16) { toast.error("Horas de sueño inválidas"); return; }
     setSending(true);
     const { error } = await supabase.from("wellness_entries").insert({
       player_id: playerId,
@@ -54,7 +54,7 @@ function WellnessPage() {
       ...(s as Required<{ [K in keyof Scores]: number }>),
     });
     setSending(false);
-    if (error) return toast.error("No se pudo enviar. Probá de nuevo.");
+    if (error) { toast.error("No se pudo enviar. Probá de nuevo."); return; }
     setDone(true);
   };
 
