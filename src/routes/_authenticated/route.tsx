@@ -4,6 +4,7 @@ import { LayoutDashboard, User, Users, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyRoles } from "@/lib/staff-data";
 import { Button } from "@/components/ui/button";
+import { ClubBrand } from "@/components/ClubBrand";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -50,9 +51,7 @@ function StaffShell() {
     <div className="min-h-screen bg-background">
       <header className="bg-pitch text-pitch-foreground">
         <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 py-3">
-          <Link to="/panel" className="font-display text-lg font-bold uppercase tracking-wider">
-            CBMM <span className="text-accent">Carga</span>
-          </Link>
+          <ClubBrand to="/panel" compact className="text-pitch-foreground" />
           <nav className="flex gap-1">
             {nav.map((n) => (
               <Link
