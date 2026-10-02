@@ -1,14 +1,12 @@
-import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { ClubBrand } from "@/components/ClubBrand";
 
 export function FormShell({ kicker, title, children }: { kicker: string; title: string; children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <header className="stripe-bg bg-pitch text-pitch-foreground">
         <div className="mx-auto max-w-xl px-5 pb-8 pt-6">
-          <Link to="/" className="font-display text-sm font-semibold uppercase tracking-[0.2em] text-pitch-foreground/70">
-            CBMM · Rugby
-          </Link>
+          <ClubBrand compact className="text-pitch-foreground" />
           <p className="mt-6 font-display text-sm uppercase tracking-widest text-accent">{kicker}</p>
           <h1 className="font-display text-4xl font-bold uppercase leading-none">{title}</h1>
         </div>

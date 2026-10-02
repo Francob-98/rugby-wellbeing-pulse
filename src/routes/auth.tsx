@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ClubBrand } from "@/components/ClubBrand";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -52,7 +53,7 @@ function AuthPage() {
   return (
     <div className="stripe-bg flex min-h-screen items-center justify-center bg-pitch px-4">
       <div className="w-full max-w-sm rounded-lg bg-card p-6 shadow-xl">
-        <Link to="/" className="font-display text-sm uppercase tracking-[0.2em] text-muted-foreground">CBMM · Rugby</Link>
+        <ClubBrand compact className="text-foreground" />
         <h1 className="mb-6 mt-2 font-display text-3xl font-bold uppercase">Acceso staff</h1>
         <Tabs defaultValue="in">
           <TabsList className="grid w-full grid-cols-2">
