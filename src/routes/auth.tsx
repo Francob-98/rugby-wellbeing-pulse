@@ -26,18 +26,18 @@ function AuthPage() {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const signIn = async (e: React.FormEvent) => {
+  const signIn = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
-    if (error) return toast.error("Email o contraseña incorrectos");
+    if (error) { toast.error("Email o contraseña incorrectos"); return; }
     navigate({ to: "/panel" });
   };
 
-  const signUp = async (e: React.FormEvent) => {
+  const signUp = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    if (password.length < 8) return toast.error("La contraseña debe tener al menos 8 caracteres");
+    if (password.length < 8) { toast.error("La contraseña debe tener al menos 8 caracteres"); return; }
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email,
@@ -45,7 +45,7 @@ function AuthPage() {
       options: { emailRedirectTo: window.location.origin + "/panel", data: { full_name: name } },
     });
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Revisá tu email para confirmar la cuenta");
   };
 

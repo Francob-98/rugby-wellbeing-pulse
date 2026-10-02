@@ -34,7 +34,7 @@ function PanelPage() {
     const w = (data?.wellness ?? []).filter((e) => ids.has(e.player_id));
     const s = (data?.sessions ?? []).filter((e) => ids.has(e.player_id));
     const range = dateRange(days);
-    const start = range[0];
+    const start = range[0]!;
     const wR = w.filter((e) => e.entry_date >= start);
     const sR = s.filter((e) => e.entry_date >= start);
 

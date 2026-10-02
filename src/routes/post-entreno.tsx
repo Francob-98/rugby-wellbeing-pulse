@@ -40,12 +40,12 @@ function PostPage() {
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
 
-  const submit = async () => {
+  const submit = async (): Promise<void> => {
     const d = Number(duration);
-    if (!playerId) return toast.error("Elegí tu nombre");
-    if (!team) return toast.error("Elegí el equipo en el que participaste");
-    if (!rpe || !fatigue) return toast.error("Completá RPE y fatiga");
-    if (!Number.isInteger(d) || d < 1 || d > 300) return toast.error("Duración inválida (minutos)");
+    if (!playerId) { toast.error("Elegí tu nombre"); return; }
+    if (!team) { toast.error("Elegí el equipo en el que participaste"); return; }
+    if (!rpe || !fatigue) { toast.error("Completá RPE y fatiga"); return; }
+    if (!Number.isInteger(d) || d < 1 || d > 300) { toast.error("Duración inválida (minutos)"); return; }
     setSending(true);
     const { error } = await supabase.from("session_entries").insert({
       player_id: playerId,
@@ -58,7 +58,7 @@ function PostPage() {
       comments: comments.trim().slice(0, 1000) || null,
     });
     setSending(false);
-    if (error) return toast.error("No se pudo enviar. Probá de nuevo.");
+    if (error) { toast.error("No se pudo enviar. Probá de nuevo."); return; }
     setDone(true);
   };
 
