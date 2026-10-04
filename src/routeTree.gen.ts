@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as PostEntrenoRouteImport } from './routes/post-entreno'
 import { Route as WellnessRouteImport } from './routes/wellness'
+import { Route as AuthenticatedAnalisisRouteImport } from './routes/_authenticated/analisis'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
 import { Route as AuthenticatedPlantelRouteImport } from './routes/_authenticated/plantel'
 import { Route as AuthenticatedJugadorIndexRouteImport } from './routes/_authenticated/jugador.index'
@@ -43,6 +44,11 @@ const WellnessRoute = WellnessRouteImport.update({
   path: '/wellness',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAnalisisRoute = AuthenticatedAnalisisRouteImport.update({
+  id: '/analisis',
+  path: '/analisis',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
   id: '/panel',
   path: '/panel',
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/post-entreno': typeof PostEntrenoRoute
   '/wellness': typeof WellnessRoute
+  '/analisis': typeof AuthenticatedAnalisisRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/plantel': typeof AuthenticatedPlantelRoute
   '/jugador/$id': typeof AuthenticatedJugadorIdRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/post-entreno': typeof PostEntrenoRoute
   '/wellness': typeof WellnessRoute
+  '/analisis': typeof AuthenticatedAnalisisRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/plantel': typeof AuthenticatedPlantelRoute
   '/jugador/$id': typeof AuthenticatedJugadorIdRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/post-entreno': typeof PostEntrenoRoute
   '/wellness': typeof WellnessRoute
+  '/_authenticated/analisis': typeof AuthenticatedAnalisisRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/plantel': typeof AuthenticatedPlantelRoute
   '/_authenticated/jugador/$id': typeof AuthenticatedJugadorIdRoute
@@ -104,6 +113,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/post-entreno'
     | '/wellness'
+    | '/analisis'
     | '/panel'
     | '/plantel'
     | '/jugador/$id'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/post-entreno'
     | '/wellness'
+    | '/analisis'
     | '/panel'
     | '/plantel'
     | '/jugador/$id'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/post-entreno'
     | '/wellness'
+    | '/_authenticated/analisis'
     | '/_authenticated/panel'
     | '/_authenticated/plantel'
     | '/_authenticated/jugador/$id'
@@ -176,6 +188,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WellnessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/analisis': {
+      id: '/_authenticated/analisis'
+      path: '/analisis'
+      fullPath: '/analisis'
+      preLoaderRoute: typeof AuthenticatedAnalisisRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/panel': {
       id: '/_authenticated/panel'
       path: '/panel'
@@ -208,6 +227,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAnalisisRoute: typeof AuthenticatedAnalisisRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedPlantelRoute: typeof AuthenticatedPlantelRoute
   AuthenticatedJugadorIdRoute: typeof AuthenticatedJugadorIdRoute
@@ -215,6 +235,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAnalisisRoute: AuthenticatedAnalisisRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedPlantelRoute: AuthenticatedPlantelRoute,
   AuthenticatedJugadorIdRoute: AuthenticatedJugadorIdRoute,
