@@ -14,9 +14,9 @@ export function Panel({ title, action, children, className }: { title: string; a
   );
 }
 
-export function Kpi({ label, value, sub, tone }: { label: string; value: ReactNode; sub?: string | undefined; tone?: "ok" | "warn" | "bad" | undefined }) {
+export function Kpi({ label, value, sub, tone, className }: { label: string; value: ReactNode; sub?: string | undefined; tone?: "ok" | "warn" | "bad" | undefined; className?: string | undefined }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
+    <div className={cn("rounded-lg border border-border bg-card p-4", className)}>
       <div className="font-display text-xs uppercase tracking-widest text-muted-foreground">{label}</div>
       <div className={cn("mt-1 font-display text-4xl font-bold leading-none",
         tone === "ok" && "text-success", tone === "warn" && "text-warning", tone === "bad" && "text-destructive")}>{value}</div>

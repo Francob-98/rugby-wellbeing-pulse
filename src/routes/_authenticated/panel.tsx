@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { Flag, Sun } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from "recharts";
 import { usePlayers } from "@/components/PlayerPicker";
 import { useEntries } from "@/lib/staff-data";
@@ -17,6 +18,8 @@ export const Route = createFileRoute("/_authenticated/panel")({
       { name: "description", content: "Wellness, carga y dolor del plantel completo." },
       { property: "og:title", content: "Panel general · CBMM Rugby" },
       { property: "og:description", content: "Control de cargas del plantel." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: PanelPage,
@@ -68,6 +71,7 @@ function PanelPage() {
   }, [players, data, days, team]);
 
   const avgToday = avg(view.todayW.map(wellnessPct));
+  const avgRpe = avg(view.sR.map((entry) => entry.rpe));
   const alerts = view.rows.filter((r) => (r.lastW && wellnessPct(r.lastW) < 60) || acwrStatus(r.a.ratio) === "high").length;
 
   return (
@@ -89,11 +93,34 @@ function PanelPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi label="Wellness hoy" value={`${view.todayW.length}/${view.ps.length}`} sub="respuestas recibidas" />
-        <Kpi label="Wellness medio hoy" value={avgToday != null ? `${Math.round(avgToday)}%` : "—"} tone={avgToday == null ? undefined : avgToday >= 70 ? "ok" : avgToday >= 60 ? "warn" : "bad"} />
-        <Kpi label="Sesiones registradas" value={view.sR.length} sub={`en ${days} días`} />
-        <Kpi label="Alertas" value={alerts} sub="wellness < 60% o ACWR > 1.5" tone={alerts ? "bad" : "ok"} />
+      <div className="grid gap-3 lg:grid-cols-2">
+        <section className="border-l-4 border-primary bg-card p-4 shadow-sm">
+          <div className="mb-3 flex items-center gap-2 border-b border-border pb-3">
+            <Sun className="size-5 text-primary" />
+            <div>
+              <p className="font-display text-lg font-bold uppercase leading-none">Pre-entreno</p>
+              <p className="mt-1 text-xs text-muted-foreground">Respuestas de wellness de hoy</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Kpi label="Respuestas" value={`${view.todayW.length}/${view.ps.length}`} sub="jugadores" className="border-0 bg-muted/60" />
+            <Kpi label="Wellness medio" value={avgToday != null ? `${Math.round(avgToday)}%` : "—"} tone={avgToday == null ? undefined : avgToday >= 70 ? "ok" : avgToday >= 60 ? "warn" : "bad"} className="border-0 bg-muted/60" />
+          </div>
+        </section>
+
+        <section className="border-l-4 border-accent bg-card p-4 shadow-sm">
+          <div className="mb-3 flex items-center gap-2 border-b border-border pb-3">
+            <Flag className="size-5 text-accent" />
+            <div>
+              <p className="font-display text-lg font-bold uppercase leading-none">Post-entreno</p>
+              <p className="mt-1 text-xs text-muted-foreground">Respuestas de los últimos {days} días</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Kpi label="Respuestas" value={view.sR.length} sub="sesiones" className="border-0 bg-muted/60" />
+            <Kpi label="RPE medio" value={avgRpe != null ? avgRpe.toFixed(1) : "—"} sub={`${alerts} alertas activas`} tone={alerts ? "bad" : "ok"} className="border-0 bg-muted/60" />
+          </div>
+        </section>
       </div>
 
       {isLoading ? <p className="text-muted-foreground">Cargando datos…</p> : (

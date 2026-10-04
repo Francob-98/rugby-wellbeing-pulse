@@ -1,11 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import crestAsset from "@/assets/cbmm-escudo.jpg.asset.json";
+import crestAsset from "@/assets/cbmm-escudo-transparente.png";
 import { cn } from "@/lib/utils";
 
 export function ClubCrest({ className }: { className?: string }) {
   return (
-    <span className={cn("inline-flex shrink-0 items-center justify-center overflow-hidden rounded-sm bg-card", className)}>
-      <img src={crestAsset.url} alt="Escudo del Club Biblioteca Mariano Moreno" className="h-full w-full object-contain" />
+    <span className={cn("inline-flex shrink-0 items-center justify-center", className)}>
+      <img src={crestAsset} alt="Escudo del Club Biblioteca Mariano Moreno" className="h-full w-full object-contain" />
     </span>
   );
 }
