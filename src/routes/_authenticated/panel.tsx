@@ -28,14 +28,18 @@ export const Route = createFileRoute("/_authenticated/panel")({
 function PanelPage() {
   const [days, setDays] = useState(14);
   const [team, setTeam] = useState("all");
+  const [kind, setKind] = useState("all");
   const { data: players = [] } = usePlayers();
   const { data, isLoading } = useEntries(days);
 
   const view = useMemo(() => {
-    const ps = players.filter((p) => team === "all" || p.team === team);
+    const allS = (data?.sessions ?? []).filter((e) => kind === "all" || (e.session_type ?? "Entrenamiento") === kind);
+    // Post-entreno se filtra por el equipo en el que jugó cada uno; pre-entreno por el equipo del jugador
+    const s = allS.filter((e) => team === "all" || e.team === team);
+    const sIds = new Set(s.map((e) => e.player_id));
+    const ps = players.filter((p) => team === "all" || p.team === team || sIds.has(p.id));
     const ids = new Set(ps.map((p) => p.id));
     const w = (data?.wellness ?? []).filter((e) => ids.has(e.player_id));
-    const s = (data?.sessions ?? []).filter((e) => ids.has(e.player_id));
     const range = dateRange(days);
     const start = range[0]!;
     const wR = w.filter((e) => e.entry_date >= start);
@@ -68,7 +72,7 @@ function PanelPage() {
     const topZones = Object.entries(heat).sort((a, b) => b[1] - a[1]).slice(0, 6);
 
     return { ps, daily, rows, todayW, heat, topZones, sR };
-  }, [players, data, days, team]);
+  }, [players, data, days, team, kind]);
 
   const avgToday = avg(view.todayW.map(wellnessPct));
   const avgRpe = avg(view.sR.map((entry) => entry.rpe));
@@ -87,6 +91,13 @@ function PanelPage() {
             <SelectContent>
               <SelectItem value="all">Todo el plantel</SelectItem>
               {TEAMS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={kind} onValueChange={setKind}>
+            <SelectTrigger className="w-44 bg-card"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Entrenamientos y partidos</SelectItem>
+              {SESSION_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
             </SelectContent>
           </Select>
           <RangeSelect value={days} onChange={setDays} />

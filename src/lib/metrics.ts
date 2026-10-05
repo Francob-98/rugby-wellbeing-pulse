@@ -19,6 +19,7 @@ export interface SessionEntry {
   player_id: string;
   entry_date: string;
   team: string;
+  session_type?: string;
   duration_min: number;
   rpe: number;
   fatigue: number;
