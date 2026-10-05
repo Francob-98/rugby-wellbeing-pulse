@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Bar, CartesianGrid, ComposedChart, Legend, Line, LineChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { PlayerPicker, usePlayers } from "@/components/PlayerPicker";
@@ -67,7 +67,8 @@ function PlayerPage() {
           <p className="font-display text-sm uppercase tracking-widest text-accent">{player?.team ?? "Jugador"}{player?.position ? ` · ${player.position}` : ""}</p>
           <h1 className="font-display text-4xl font-bold uppercase">{player?.full_name ?? "…"}</h1>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Link to="/jugador/$id/respuestas" params={{ id }} className="inline-flex h-9 items-center rounded-md border border-border bg-card px-3 text-sm font-medium hover:bg-muted">Ver todas las respuestas</Link>
           <div className="w-56"><PlayerPicker value={id} onlyActive={false} onChange={(pid) => navigate({ to: "/jugador/$id", params: { id: pid } })} /></div>
           <RangeSelect value={days} onChange={setDays} />
         </div>
