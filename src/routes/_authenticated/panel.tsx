@@ -5,7 +5,7 @@ import { Bar, BarChart, CartesianGrid, ComposedChart, Line, ResponsiveContainer,
 import { usePlayers } from "@/components/PlayerPicker";
 import { useEntries } from "@/lib/staff-data";
 import { acwr, acwrStatus, avg, dateRange, painHeat, shortDate, today, wellnessPct } from "@/lib/metrics";
-import { TEAMS } from "@/lib/constants";
+import { TEAMS, SESSION_TYPES } from "@/lib/constants";
 import { BodyMap, PainLegend, zoneLabel } from "@/components/BodyMap";
 import { Kpi, Panel, RangeSelect, StatusPill, chartTooltipStyle } from "@/components/staff/Widgets";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
