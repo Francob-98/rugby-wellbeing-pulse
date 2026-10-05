@@ -74,6 +74,7 @@ export type Database = {
           pain_zones: Json
           player_id: string
           rpe: number
+          session_type: string
           team: string
         }
         Insert: {
@@ -87,6 +88,7 @@ export type Database = {
           pain_zones?: Json
           player_id: string
           rpe: number
+          session_type?: string
           team: string
         }
         Update: {
@@ -100,6 +102,7 @@ export type Database = {
           pain_zones?: Json
           player_id?: string
           rpe?: number
+          session_type?: string
           team?: string
         }
         Relationships: [

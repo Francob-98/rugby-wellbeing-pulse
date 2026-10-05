@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRememberedPlayer } from "@/lib/use-remembered-player";
 import { today } from "@/lib/metrics";
-import { RPE_LABELS, TEAMS, type PainZones } from "@/lib/constants";
+import { RPE_LABELS, TEAMS, SESSION_TYPES, type PainZones } from "@/lib/constants";
 
 export const Route = createFileRoute("/post-entreno")({
   head: () => ({
@@ -31,6 +31,7 @@ export const Route = createFileRoute("/post-entreno")({
 function PostPage() {
   const [playerId, setPlayerId] = useRememberedPlayer();
   const [team, setTeam] = useState("");
+  const [kind, setKind] = useState("");
   const [date, setDate] = useState(today());
   const [duration, setDuration] = useState("90");
   const [rpe, setRpe] = useState<number | null>(null);
@@ -44,6 +45,7 @@ function PostPage() {
     const d = Number(duration);
     if (!playerId) { toast.error("Elegí tu nombre"); return; }
     if (!team) { toast.error("Elegí el equipo en el que participaste"); return; }
+    if (!kind) { toast.error("Elegí si fue entrenamiento o partido"); return; }
     if (!rpe || !fatigue) { toast.error("Completá RPE y fatiga"); return; }
     if (!Number.isInteger(d) || d < 1 || d > 300) { toast.error("Duración inválida (minutos)"); return; }
     setSending(true);
@@ -51,6 +53,7 @@ function PostPage() {
       player_id: playerId,
       entry_date: date,
       team,
+      session_type: kind,
       duration_min: d,
       rpe,
       fatigue,
@@ -73,12 +76,19 @@ function PostPage() {
     <FormShell kicker="Post entreno" title="¿Cómo terminaste?">
       <div className="space-y-5">
         <Section title="Sesión">
-          <PlayerPicker value={playerId} onChange={(id, p) => { setPlayerId(id); if (p && !team) setTeam(p.team); }} />
+          <PlayerPicker value={playerId} onChange={(id) => setPlayerId(id)} />
           <div className="space-y-1.5">
             <Label>Equipo en el que participaste</Label>
             <Select value={team} onValueChange={setTeam}>
               <SelectTrigger className="h-11 bg-card"><SelectValue placeholder="Elegí equipo" /></SelectTrigger>
               <SelectContent>{TEAMS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Tipo de sesión</Label>
+            <Select value={kind} onValueChange={setKind}>
+              <SelectTrigger className="h-11 bg-card"><SelectValue placeholder="¿Entrenamiento o partido?" /></SelectTrigger>
+              <SelectContent>{SESSION_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-3">

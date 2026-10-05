@@ -1,0 +1,1 @@
+ALTER TABLE public.session_entries ADD COLUMN session_type text NOT NULL DEFAULT 'Entrenamiento' CHECK (session_type IN ('Entrenamiento','Partido'));
