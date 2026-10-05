@@ -19,6 +19,7 @@ import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedPlantelRouteImport } from './routes/_authenticated/plantel'
 import { Route as AuthenticatedJugadorIndexRouteImport } from './routes/_authenticated/jugador.index'
 import { Route as AuthenticatedJugadorIdRouteImport } from './routes/_authenticated/jugador.$id'
+import { Route as AuthenticatedJugadorIdRespuestasRouteImport } from './routes/_authenticated/jugador_.$id.respuestas'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -70,6 +71,12 @@ const AuthenticatedJugadorIdRoute = AuthenticatedJugadorIdRouteImport.update({
   path: '/jugador/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedJugadorIdRespuestasRoute =
+  AuthenticatedJugadorIdRespuestasRouteImport.update({
+    id: '/jugador_/$id/respuestas',
+    path: '/jugador/$id/respuestas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/plantel': typeof AuthenticatedPlantelRoute
   '/jugador/$id': typeof AuthenticatedJugadorIdRoute
   '/jugador/': typeof AuthenticatedJugadorIndexRoute
+  '/jugador/$id/respuestas': typeof AuthenticatedJugadorIdRespuestasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -92,6 +100,7 @@ export interface FileRoutesByTo {
   '/plantel': typeof AuthenticatedPlantelRoute
   '/jugador/$id': typeof AuthenticatedJugadorIdRoute
   '/jugador': typeof AuthenticatedJugadorIndexRoute
+  '/jugador/$id/respuestas': typeof AuthenticatedJugadorIdRespuestasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -105,6 +114,7 @@ export interface FileRoutesById {
   '/_authenticated/plantel': typeof AuthenticatedPlantelRoute
   '/_authenticated/jugador/$id': typeof AuthenticatedJugadorIdRoute
   '/_authenticated/jugador/': typeof AuthenticatedJugadorIndexRoute
+  '/_authenticated/jugador_/$id/respuestas': typeof AuthenticatedJugadorIdRespuestasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/plantel'
     | '/jugador/$id'
     | '/jugador/'
+    | '/jugador/$id/respuestas'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/plantel'
     | '/jugador/$id'
     | '/jugador'
+    | '/jugador/$id/respuestas'
   id:
     | '__root__'
     | '/'
@@ -141,6 +153,7 @@ export interface FileRouteTypes {
     | '/_authenticated/plantel'
     | '/_authenticated/jugador/$id'
     | '/_authenticated/jugador/'
+    | '/_authenticated/jugador_/$id/respuestas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -223,6 +236,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedJugadorIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/jugador_/$id/respuestas': {
+      id: '/_authenticated/jugador_/$id/respuestas'
+      path: '/jugador/$id/respuestas'
+      fullPath: '/jugador/$id/respuestas'
+      preLoaderRoute: typeof AuthenticatedJugadorIdRespuestasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -232,6 +252,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPlantelRoute: typeof AuthenticatedPlantelRoute
   AuthenticatedJugadorIdRoute: typeof AuthenticatedJugadorIdRoute
   AuthenticatedJugadorIndexRoute: typeof AuthenticatedJugadorIndexRoute
+  AuthenticatedJugadorIdRespuestasRoute: typeof AuthenticatedJugadorIdRespuestasRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -240,6 +261,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPlantelRoute: AuthenticatedPlantelRoute,
   AuthenticatedJugadorIdRoute: AuthenticatedJugadorIdRoute,
   AuthenticatedJugadorIndexRoute: AuthenticatedJugadorIndexRoute,
+  AuthenticatedJugadorIdRespuestasRoute: AuthenticatedJugadorIdRespuestasRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
