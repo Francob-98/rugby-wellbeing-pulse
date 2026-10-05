@@ -84,6 +84,13 @@ function PostPage() {
               <SelectContent>{TEAMS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
             </Select>
           </div>
+          <div className="space-y-1.5">
+            <Label>Tipo de sesión</Label>
+            <Select value={kind} onValueChange={setKind}>
+              <SelectTrigger className="h-11 bg-card"><SelectValue placeholder="¿Entrenamiento o partido?" /></SelectTrigger>
+              <SelectContent>{SESSION_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Fecha</Label>
