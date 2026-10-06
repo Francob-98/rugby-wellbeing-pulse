@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type Ref } from "react";
 import { toPng } from "html-to-image";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
@@ -150,19 +150,18 @@ function Metric({ label, value, note, tone = "default" }: { label: string; value
 }
 
 function ScoreBar({ label, value, inverse = false }: { label: string; value: number | null; inverse?: boolean }) {
-  const pct = value == null ? 0 : Math.max(0, Math.min(100, (value / 5) * 100));
   const display = value == null ? "—" : value.toFixed(1);
   const healthy = value == null ? false : inverse ? value <= 2 : value >= 4;
   return (
     <div>
       <div className="mb-1 flex justify-between text-sm"><span>{label}</span><strong>{display}</strong></div>
-      <div className="h-2 overflow-hidden rounded-full bg-border"><div className={healthy ? "h-full bg-success" : "h-full bg-primary"} style={{ width: `${pct}%` }} /></div>
+      <progress value={value ?? 0} max={5} className={healthy ? "h-2 w-full accent-success" : "h-2 w-full accent-primary"} />
     </div>
   );
 }
 
 const TeamReport = function TeamReport({ ref, date, team, players, wellness, sessions, loading }: {
-  ref: React.Ref<HTMLDivElement>;
+  ref: Ref<HTMLDivElement>;
   date: string;
   team: string;
   players: Player[];
@@ -270,7 +269,7 @@ const TeamReport = function TeamReport({ ref, date, team, players, wellness, ses
 };
 
 const PlayerReport = function PlayerReport({ ref, date, player, wellness, sessions, loading }: {
-  ref: React.Ref<HTMLDivElement>;
+  ref: Ref<HTMLDivElement>;
   date: string;
   player: Player | undefined;
   wellness: WellnessEntry[];
@@ -334,7 +333,11 @@ const PlayerReport = function PlayerReport({ ref, date, player, wellness, sessio
               <div className="grid items-center gap-5 sm:grid-cols-[1fr_0.8fr]">
                 <BodyMap value={combinedPain} />
                 <div>
-                  <PainLegend />
+                  <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1"><span className="size-3 rounded-sm bg-pain-1" />Leve</span>
+                    <span className="flex items-center gap-1"><span className="size-3 rounded-sm bg-pain-2" />Moderado</span>
+                    <span className="flex items-center gap-1"><span className="size-3 rounded-sm bg-pain-3" />Intenso</span>
+                  </div>
                   <ul className="mt-4 divide-y divide-border text-sm">
                     {Object.entries(combinedPain).sort((a, b) => b[1] - a[1]).map(([zone, level]) => (
                       <li key={zone} className="flex justify-between py-2"><span>{zoneLabel(zone)}</span><strong>{["", "Leve", "Moderado", "Intenso"][level] ?? level}</strong></li>
