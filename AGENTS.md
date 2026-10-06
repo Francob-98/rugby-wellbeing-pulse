@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Reuse the shared `ClubBrand` and `ClubCrest` components for CBMM identity so the official crest remains consistent and restrained across screens.
+- Keep shareable coach reports as browser-rendered authenticated views exported locally to PNG so player data is not sent to another service.

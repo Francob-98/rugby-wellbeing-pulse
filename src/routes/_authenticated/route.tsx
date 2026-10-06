@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, User, Users, LogOut, Sparkles } from "lucide-react";
+import { FileImage, LayoutDashboard, User, Users, LogOut, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyRoles } from "@/lib/staff-data";
 import { Button } from "@/components/ui/button";
@@ -46,6 +46,7 @@ function StaffShell() {
     { to: "/jugador", label: "Individual", icon: User },
     { to: "/plantel", label: "Plantel", icon: Users },
     { to: "/analisis", label: "Análisis IA", icon: Sparkles },
+    { to: "/reportes", label: "Informes", icon: FileImage },
   ] as const;
 
   return (

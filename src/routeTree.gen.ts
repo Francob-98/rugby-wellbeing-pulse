@@ -17,6 +17,7 @@ import { Route as WellnessRouteImport } from './routes/wellness'
 import { Route as AuthenticatedAnalisisRouteImport } from './routes/_authenticated/analisis'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
 import { Route as AuthenticatedPlantelRouteImport } from './routes/_authenticated/plantel'
+import { Route as AuthenticatedReportesRouteImport } from './routes/_authenticated/reportes'
 import { Route as AuthenticatedJugadorIndexRouteImport } from './routes/_authenticated/jugador.index'
 import { Route as AuthenticatedJugadorIdRouteImport } from './routes/_authenticated/jugador.$id'
 import { Route as AuthenticatedJugadorIdRespuestasRouteImport } from './routes/_authenticated/jugador_.$id.respuestas'
@@ -60,6 +61,11 @@ const AuthenticatedPlantelRoute = AuthenticatedPlantelRouteImport.update({
   path: '/plantel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedReportesRoute = AuthenticatedReportesRouteImport.update({
+  id: '/reportes',
+  path: '/reportes',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedJugadorIndexRoute =
   AuthenticatedJugadorIndexRouteImport.update({
     id: '/jugador/',
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/analisis': typeof AuthenticatedAnalisisRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/plantel': typeof AuthenticatedPlantelRoute
+  '/reportes': typeof AuthenticatedReportesRoute
   '/jugador/$id': typeof AuthenticatedJugadorIdRoute
   '/jugador/': typeof AuthenticatedJugadorIndexRoute
   '/jugador/$id/respuestas': typeof AuthenticatedJugadorIdRespuestasRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/analisis': typeof AuthenticatedAnalisisRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/plantel': typeof AuthenticatedPlantelRoute
+  '/reportes': typeof AuthenticatedReportesRoute
   '/jugador/$id': typeof AuthenticatedJugadorIdRoute
   '/jugador': typeof AuthenticatedJugadorIndexRoute
   '/jugador/$id/respuestas': typeof AuthenticatedJugadorIdRespuestasRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/_authenticated/analisis': typeof AuthenticatedAnalisisRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/plantel': typeof AuthenticatedPlantelRoute
+  '/_authenticated/reportes': typeof AuthenticatedReportesRoute
   '/_authenticated/jugador/$id': typeof AuthenticatedJugadorIdRoute
   '/_authenticated/jugador/': typeof AuthenticatedJugadorIndexRoute
   '/_authenticated/jugador_/$id/respuestas': typeof AuthenticatedJugadorIdRespuestasRoute
@@ -126,6 +135,7 @@ export interface FileRouteTypes {
     | '/analisis'
     | '/panel'
     | '/plantel'
+    | '/reportes'
     | '/jugador/$id'
     | '/jugador/'
     | '/jugador/$id/respuestas'
@@ -138,6 +148,7 @@ export interface FileRouteTypes {
     | '/analisis'
     | '/panel'
     | '/plantel'
+    | '/reportes'
     | '/jugador/$id'
     | '/jugador'
     | '/jugador/$id/respuestas'
@@ -151,6 +162,7 @@ export interface FileRouteTypes {
     | '/_authenticated/analisis'
     | '/_authenticated/panel'
     | '/_authenticated/plantel'
+    | '/_authenticated/reportes'
     | '/_authenticated/jugador/$id'
     | '/_authenticated/jugador/'
     | '/_authenticated/jugador_/$id/respuestas'
@@ -222,6 +234,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlantelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/reportes': {
+      id: '/_authenticated/reportes'
+      path: '/reportes'
+      fullPath: '/reportes'
+      preLoaderRoute: typeof AuthenticatedReportesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/jugador/': {
       id: '/_authenticated/jugador/'
       path: '/jugador'
@@ -250,6 +269,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnalisisRoute: typeof AuthenticatedAnalisisRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedPlantelRoute: typeof AuthenticatedPlantelRoute
+  AuthenticatedReportesRoute: typeof AuthenticatedReportesRoute
   AuthenticatedJugadorIdRoute: typeof AuthenticatedJugadorIdRoute
   AuthenticatedJugadorIndexRoute: typeof AuthenticatedJugadorIndexRoute
   AuthenticatedJugadorIdRespuestasRoute: typeof AuthenticatedJugadorIdRespuestasRoute
@@ -259,6 +279,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAnalisisRoute: AuthenticatedAnalisisRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedPlantelRoute: AuthenticatedPlantelRoute,
+  AuthenticatedReportesRoute: AuthenticatedReportesRoute,
   AuthenticatedJugadorIdRoute: AuthenticatedJugadorIdRoute,
   AuthenticatedJugadorIndexRoute: AuthenticatedJugadorIndexRoute,
   AuthenticatedJugadorIdRespuestasRoute: AuthenticatedJugadorIdRespuestasRoute,
