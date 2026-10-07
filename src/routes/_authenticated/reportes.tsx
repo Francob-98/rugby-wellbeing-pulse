@@ -3,7 +3,7 @@ import { useMemo, useRef, useState, type Ref } from "react";
 import { toPng } from "html-to-image";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { Activity, CalendarDays, Download, Flag, Moon, Sun, UserRound, Users } from "lucide-react";
+import { Activity, CalendarDays, Download, FileText, Flag, Sun, UserRound, Users } from "lucide-react";
 import { toast } from "sonner";
 import { BodyMap, PainLegend, zoneLabel } from "@/components/BodyMap";
 import { ClubBrand } from "@/components/ClubBrand";
@@ -36,7 +36,7 @@ function ReportsPage() {
   const [date, setDate] = useState(today());
   const [team, setTeam] = useState("all");
   const [playerId, setPlayerId] = useState("");
-  const [exporting, setExporting] = useState(false);
+  const [exporting, setExporting] = useState<"png" | "pdf" | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const { data: players = [], isLoading: loadingPlayers } = usePlayers();
   const { data, isLoading: loadingEntries } = useEntries(28);
@@ -51,21 +51,30 @@ function ReportsPage() {
   );
   const selectedPlayer = players.find((player) => player.id === playerId);
 
-  const download = async () => {
+  const createReportImage = async () => {
     const node = reportRef.current;
-    if (!node) return;
-    setExporting(true);
+    if (!node) return null;
+    const backgroundColor = getComputedStyle(node).backgroundColor;
+    return toPng(node, {
+      cacheBust: true,
+      pixelRatio: 2,
+      backgroundColor,
+      skipFonts: true,
+    });
+  };
+
+  const fileName = () => {
+    const subject = mode === "team" ? (team === "all" ? "plantel" : team) : selectedPlayer?.full_name ?? "jugador";
+    return `CBMM-${subject.replaceAll(" ", "-")}-${date}`;
+  };
+
+  const downloadPng = async () => {
+    setExporting("png");
     try {
-      const backgroundColor = getComputedStyle(node).backgroundColor;
-      const dataUrl = await toPng(node, {
-        cacheBust: true,
-        pixelRatio: 2,
-        backgroundColor,
-        skipFonts: true,
-      });
+      const dataUrl = await createReportImage();
+      if (!dataUrl) return;
       const link = document.createElement("a");
-      const subject = mode === "team" ? (team === "all" ? "plantel" : team) : selectedPlayer?.full_name ?? "jugador";
-      link.download = `CBMM-${subject.replaceAll(" ", "-")}-${date}.png`;
+      link.download = `${fileName()}.png`;
       link.href = dataUrl;
       link.click();
       toast.success("Imagen descargada");
@@ -73,6 +82,52 @@ function ReportsPage() {
       toast.error("No se pudo crear la imagen. Intentá nuevamente.");
     } finally {
       setExporting(false);
+    }
+  };
+
+  const downloadPdf = async () => {
+    setExporting("pdf");
+    try {
+      const dataUrl = await createReportImage();
+      if (!dataUrl) return;
+      const [{ jsPDF }, image] = await Promise.all([
+        import("jspdf"),
+        new Promise<HTMLImageElement>((resolve, reject) => {
+          const nextImage = new Image();
+          nextImage.onload = () => resolve(nextImage);
+          nextImage.onerror = reject;
+          nextImage.src = dataUrl;
+        }),
+      ]);
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const margin = 10;
+      const contentWidth = pdf.internal.pageSize.getWidth() - margin * 2;
+      const contentHeight = pdf.internal.pageSize.getHeight() - margin * 2;
+      const pixelsPerMm = image.width / contentWidth;
+      const sliceHeight = Math.floor(contentHeight * pixelsPerMm);
+      let offset = 0;
+      let page = 0;
+
+      while (offset < image.height) {
+        const currentHeight = Math.min(sliceHeight, image.height - offset);
+        const canvas = document.createElement("canvas");
+        canvas.width = image.width;
+        canvas.height = currentHeight;
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("No se pudo preparar el PDF");
+        context.drawImage(image, 0, offset, image.width, currentHeight, 0, 0, image.width, currentHeight);
+        if (page > 0) pdf.addPage();
+        pdf.addImage(canvas.toDataURL("image/png"), "PNG", margin, margin, contentWidth, currentHeight / pixelsPerMm);
+        offset += currentHeight;
+        page += 1;
+      }
+
+      pdf.save(`${fileName()}.pdf`);
+      toast.success("PDF descargado");
+    } catch {
+      toast.error("No se pudo crear el PDF. Intentá nuevamente.");
+    } finally {
+      setExporting(null);
     }
   };
 
@@ -85,9 +140,14 @@ function ReportsPage() {
           <p className="font-display text-sm uppercase tracking-widest text-accent">Listo para compartir</p>
           <h1 className="font-display text-4xl font-bold uppercase">Informes visuales</h1>
         </div>
-        <Button onClick={download} disabled={loading || exporting || (mode === "player" && !selectedPlayer)}>
-          <Download /> {exporting ? "Creando imagen…" : "Descargar PNG"}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={downloadPng} disabled={loading || Boolean(exporting) || (mode === "player" && !selectedPlayer)}>
+            <Download /> {exporting === "png" ? "Creando PNG…" : "Descargar PNG"}
+          </Button>
+          <Button onClick={downloadPdf} disabled={loading || Boolean(exporting) || (mode === "player" && !selectedPlayer)}>
+            <FileText /> {exporting === "pdf" ? "Creando PDF…" : "Descargar PDF"}
+          </Button>
+        </div>
       </div>
 
       <Tabs value={mode} onValueChange={(value) => setMode(value as ReportMode)}>
@@ -182,16 +242,18 @@ const TeamReport = function TeamReport({ ref, date, team, players, wellness, ses
   const pain = painHeat([...selectedWellness, ...selectedSessions]);
   const topPain = Object.entries(pain).sort((a, b) => b[1] - a[1]).slice(0, 4);
   const flagged = relevantPlayers.map((player) => {
-    const w = selectedWellness.find((entry) => entry.player_id === player.id);
-    const s = selectedSessions.find((entry) => entry.player_id === player.id);
+    const playerWellness = selectedWellness.filter((entry) => entry.player_id === player.id);
+    const playerSessions = selectedSessions.filter((entry) => entry.player_id === player.id);
+    const highRpe = playerSessions.reduce((highest, entry) => Math.max(highest, entry.rpe), 0);
+    const prePain = [...new Set(playerWellness.flatMap((entry) => Object.keys(entry.pain_zones ?? {})))];
+    const postPain = [...new Set(playerSessions.flatMap((entry) => Object.keys(entry.pain_zones ?? {})))];
     const reasons = [
-      w && wellnessPct(w) < 60 ? `wellness ${wellnessPct(w)}%` : null,
-      w && Object.keys(w.pain_zones).length ? "dolor pre" : null,
-      s && s.rpe >= 8 ? `RPE ${s.rpe}` : null,
-      s && Object.keys(s.pain_zones).length ? "dolor post" : null,
+      highRpe >= 8 ? `RPE ${highRpe}` : null,
+      prePain.length ? `dolor pre: ${prePain.map(zoneLabel).join(", ")}` : null,
+      postPain.length ? `dolor post: ${postPain.map(zoneLabel).join(", ")}` : null,
     ].filter((reason): reason is string => Boolean(reason));
     return { player, reasons };
-  }).filter((item) => item.reasons.length).slice(0, 6);
+  }).filter((item) => item.reasons.length);
   const sleep = avg(selectedWellness.map((entry) => entry.sleep_quality));
   const fatigue = avg(selectedWellness.map((entry) => entry.fatigue));
   const soreness = avg(selectedWellness.map((entry) => entry.soreness));
@@ -236,16 +298,16 @@ const TeamReport = function TeamReport({ ref, date, team, players, wellness, ses
 
           <div className="mt-7 grid gap-6 sm:grid-cols-[1fr_1fr]">
             <section className="border-t border-border pt-5">
-              <div className="mb-3 flex items-center gap-2"><Activity className="text-primary" /><h3 className="font-display text-xl font-bold uppercase">Seguimiento</h3></div>
+               <div className="mb-3 flex items-center gap-2"><Activity className="text-primary" /><h3 className="font-display text-xl font-bold uppercase">Seguimiento prioritario</h3></div>
               {flagged.length ? (
                 <ul className="divide-y divide-border">
                   {flagged.map(({ player, reasons }) => (
                     <li key={player.id} className="flex items-start justify-between gap-3 py-2.5 text-sm">
-                      <span className="font-semibold">{player.full_name}</span><span className="text-right text-destructive">{reasons.join(" · ")}</span>
+                       <span className="font-semibold">{player.full_name}</span><span className="max-w-[62%] text-right text-destructive">{reasons.join(" · ")}</span>
                     </li>
                   ))}
                 </ul>
-              ) : <EmptyText text="Sin señales destacadas en las respuestas recibidas." />}
+               ) : <EmptyText text="Sin jugadores con RPE 8 o más ni dolor muscular reportado." />}
             </section>
             <section className="border-t border-border pt-5">
               <h3 className="mb-3 font-display text-xl font-bold uppercase">Dolor reportado</h3>
@@ -280,6 +342,7 @@ const PlayerReport = function PlayerReport({ ref, date, player, wellness, sessio
   const s = player ? sessions.find((entry) => entry.player_id === player.id) : undefined;
   const combinedPain = { ...(w?.pain_zones ?? {}) };
   for (const [zone, level] of Object.entries(s?.pain_zones ?? {})) combinedPain[zone] = Math.max(combinedPain[zone] ?? 0, level);
+  const requiresFollowUp = Boolean((s && s.rpe >= 8) || Object.keys(combinedPain).length);
 
   if (!player) return <div ref={ref} className="mx-auto mt-4 max-w-[920px] bg-card p-12 text-center text-muted-foreground">Elegí un jugador para crear su ficha diaria.</div>;
 
@@ -288,6 +351,15 @@ const PlayerReport = function PlayerReport({ ref, date, player, wellness, sessio
       <ReportHeader title={player.full_name} date={date} eyebrow={`${player.team}${player.position ? ` · ${player.position}` : ""}`} />
       {loading ? <p className="py-20 text-center text-muted-foreground">Cargando datos…</p> : (
         <>
+          {requiresFollowUp && (
+            <div className="mt-6 border-l-4 border-destructive bg-destructive/10 px-4 py-3">
+              <p className="font-display text-lg font-bold uppercase text-destructive">Requiere seguimiento</p>
+              <p className="mt-1 text-sm">{[
+                s && s.rpe >= 8 ? `RPE ${s.rpe}` : null,
+                Object.keys(combinedPain).length ? `dolor muscular: ${Object.keys(combinedPain).map(zoneLabel).join(", ")}` : null,
+              ].filter(Boolean).join(" · ")}</p>
+            </div>
+          )}
           <div className="mt-6 grid gap-6 sm:grid-cols-2">
             <section className="border-l-4 border-primary pl-5">
               <div className="mb-4 flex items-center gap-2"><Sun className="text-primary" /><h3 className="font-display text-2xl font-bold uppercase">Pre-entreno</h3></div>
