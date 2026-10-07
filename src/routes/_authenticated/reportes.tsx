@@ -61,7 +61,6 @@ function ReportsPage() {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor,
-        filter: (element) => !(element instanceof HTMLElement && element.dataset.exportHide === "true"),
       });
       const link = document.createElement("a");
       const subject = mode === "team" ? (team === "all" ? "plantel" : team) : selectedPlayer?.full_name ?? "jugador";
