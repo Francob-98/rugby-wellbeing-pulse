@@ -81,7 +81,7 @@ function ReportsPage() {
     } catch {
       toast.error("No se pudo crear la imagen. Intentá nuevamente.");
     } finally {
-      setExporting(false);
+      setExporting(null);
     }
   };
 
