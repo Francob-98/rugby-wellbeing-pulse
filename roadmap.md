@@ -1,2 +1,2 @@
-- [ ] Correct PDF/PNG export layout and include every player response for the selected date.
-- [ ] Generate and inspect a test PDF and PNG with pain maps, then deliver both files.
+- [x] Correct PDF/PNG export layout and include every player response for the selected date.
+- [x] Generate and inspect a test PDF and PNG with pain maps, then deliver both files.
