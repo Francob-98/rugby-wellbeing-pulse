@@ -7,6 +7,7 @@ import { PlayerPicker } from "@/components/PlayerPicker";
 import { LinePicker } from "@/components/LinePicker";
 import { ScalePicker } from "@/components/ScalePicker";
 import { BodyMap, PainLegend } from "@/components/BodyMap";
+import { DifferentiatedFields, diffError, emptyDiff, type DiffData } from "@/components/DifferentiatedFields";
 import { SubmitDone } from "@/components/SubmitDone";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,6 +43,8 @@ function PostPage() {
   const [fatigue, setFatigue] = useState<number | null>(null);
   const [pain, setPain] = useState<PainZones>({});
   const [comments, setComments] = useState("");
+  const [diff, setDiff] = useState<DiffData>(emptyDiff);
+  const isDiff = team === "Diferenciados";
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -53,6 +56,8 @@ function PostPage() {
     if (!kind) { toast.error("Elegí si fue entrenamiento o partido"); return; }
     if (!rpe || !fatigue) { toast.error("Completá RPE y fatiga"); return; }
     if (!Number.isInteger(d) || d < 1 || d > 300) { toast.error("Duración inválida (minutos)"); return; }
+    const de = isDiff ? diffError(diff) : null;
+    if (de) { toast.error(de); return; }
     setSending(true);
     const { error } = await supabase.from("session_entries").insert({
       player_id: playerId,
@@ -66,15 +71,17 @@ function PostPage() {
       pain_zones: pain,
       comments: comments.trim().slice(0, 1000) || null,
     });
+    let diffErr = null;
+    if (!error && isDiff) diffErr = (await supabase.from("differentiated_reports").insert({ player_id: playerId, entry_date: date, source: "Post-entreno", player_line: line, reason: diff.reason, zones: diff.zones, restriction: diff.restriction, evolution: diff.evolution, comment: diff.comment.trim().slice(0, 1000) || null })).error;
     setSending(false);
-    if (error) { toast.error("No se pudo enviar. Probá de nuevo."); return; }
+    if (error || diffErr) { toast.error("No se pudo enviar. Probá de nuevo."); return; }
     setDone(true);
   };
 
   if (done)
     return (
       <FormShell kicker="Post entreno" title="¿Cómo terminaste?">
-        <SubmitDone message="Registro cargado. ¡A recuperar!" onAgain={() => { setRpe(null); setFatigue(null); setPain({}); setComments(""); setDone(false); }} />
+        <SubmitDone message="Registro cargado. ¡A recuperar!" onAgain={() => { setRpe(null); setFatigue(null); setPain({}); setComments(""); setDiff(emptyDiff); setDone(false); }} />
       </FormShell>
     );
 
@@ -109,6 +116,8 @@ function PostPage() {
             </div>
           </div>
         </Section>
+
+        {isDiff && <Section title="Seguimiento diferenciado"><DifferentiatedFields value={diff} onChange={setDiff} /></Section>}
 
         <Section title="Esfuerzo">
           <ScalePicker label="RPE" value={rpe} onChange={setRpe} min={1} max={10} lowLabel="Muy suave" highLabel="Máximo" hint={rpe ? RPE_LABELS[rpe] : undefined} />

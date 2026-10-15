@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      differentiated_reports: {
+        Row: {
+          comment: string | null
+          created_at: string
+          entry_date: string
+          evolution: string
+          id: string
+          player_id: string
+          player_line: string | null
+          reason: string
+          restriction: string
+          source: string
+          zones: Json
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          entry_date?: string
+          evolution: string
+          id?: string
+          player_id: string
+          player_line?: string | null
+          reason: string
+          restriction: string
+          source: string
+          zones?: Json
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          entry_date?: string
+          evolution?: string
+          id?: string
+          player_id?: string
+          player_line?: string | null
+          reason?: string
+          restriction?: string
+          source?: string
+          zones?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "differentiated_reports_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       players: {
         Row: {
           active: boolean
