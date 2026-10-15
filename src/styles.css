@@ -124,3 +124,16 @@
     transparent 2px 14px
   );
 }
+
+.report-sheet {
+  container-type: inline-size;
+}
+
+@container (min-width: 600px) {
+  .report-columns {
+    grid-template-columns: 1fr 1fr;
+  }
+  .report-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
