@@ -38,7 +38,25 @@ export async function exportReport(node: HTMLElement, format: "png" | "pdf", fil
     });
     let blob: Blob;
     if (format === "png") {
-      blob = await fetch(await capture(clone)).then((response) => response.blob());
+      const sections = Array.from(clone.querySelectorAll<HTMLElement>("[data-report-page]"));
+      const images: HTMLImageElement[] = [];
+      for (const section of sections.length ? sections : [clone]) {
+        const image = new Image();
+        image.src = await capture(section);
+        await image.decode();
+        images.push(image);
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(...images.map((image) => image.width));
+      canvas.height = images.reduce((height, image) => height + image.height, 0);
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("No se pudo crear la imagen");
+      let offset = 0;
+      for (const image of images) {
+        context.drawImage(image, 0, offset);
+        offset += image.height;
+      }
+      blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob((result) => result ? resolve(result) : reject(new Error("PNG vacío")), "image/png"));
     } else {
       const { PDFDocument } = await import("pdf-lib");
       const pdf = await PDFDocument.create();
