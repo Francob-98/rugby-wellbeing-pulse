@@ -36,18 +36,19 @@ function ReportsPage() {
   const [date, setDate] = useState(today());
   const [team, setTeam] = useState("all");
   const [playerId, setPlayerId] = useState("");
+  const [phase, setPhase] = useState("all");
   const [exporting, setExporting] = useState<"png" | "pdf" | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const { data: players = [], isLoading: loadingPlayers } = usePlayers();
   const { data, isLoading: loadingEntries } = useReportEntries(date);
 
   const dayWellness = useMemo(
-    () => (data?.wellness ?? []).filter((entry) => entry.entry_date === date),
-    [data, date],
+    () => phase === "post" ? [] : (data?.wellness ?? []).filter((entry) => entry.entry_date === date),
+    [data, date, phase],
   );
   const daySessions = useMemo(
-    () => (data?.sessions ?? []).filter((entry) => entry.entry_date === date),
-    [data, date],
+    () => phase === "pre" ? [] : (data?.sessions ?? []).filter((entry) => entry.entry_date === date),
+    [data, date, phase],
   );
   const selectedPlayer = players.find((player) => player.id === playerId);
 
@@ -57,7 +58,7 @@ function ReportsPage() {
     setExporting(format);
     try {
       const subject = mode === "team" ? (team === "all" ? "plantel" : team) : selectedPlayer?.full_name ?? "jugador";
-      await exportReport(node, format, `CBMM-${subject.replaceAll(" ", "-")}-${date}`);
+      await exportReport(node, format, `CBMM-${subject.replaceAll(" ", "-")}-${date}-${phase}`);
       toast.success(`${format.toUpperCase()} descargado`);
     } catch {
       toast.error("No se pudo crear el informe. Intentá nuevamente.");
@@ -92,6 +93,14 @@ function ReportsPage() {
         </TabsList>
 
         <div className="mt-4 flex flex-wrap gap-2 rounded-md border border-border bg-card p-3">
+          <Select value={phase} onValueChange={setPhase}>
+            <SelectTrigger className="min-w-52 flex-1 bg-background" aria-label="Momento del informe"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Pre y post-entreno</SelectItem>
+              <SelectItem value="pre">Antes · Pre-entreno</SelectItem>
+              <SelectItem value="post">Después · Post-entreno</SelectItem>
+            </SelectContent>
+          </Select>
           <label className="flex min-w-48 flex-1 items-center gap-2 rounded-md border border-input bg-background px-3">
             <CalendarDays className="size-4 text-muted-foreground" />
             <span className="sr-only">Fecha del informe</span>
@@ -111,7 +120,7 @@ function ReportsPage() {
         </div>
 
         <TabsContent value="team">
-          <TeamReport ref={reportRef} date={date} team={team} players={players} wellness={dayWellness} sessions={daySessions} loading={loading} />
+          <TeamReport ref={reportRef} date={date} team={team} phase={phase} players={players} wellness={dayWellness} sessions={daySessions} loading={loading} />
         </TabsContent>
         <TabsContent value="player">
           <PlayerReport ref={reportRef} date={date} player={selectedPlayer} wellness={dayWellness} sessions={daySessions} loading={loading} />
@@ -155,10 +164,11 @@ function ScoreBar({ label, value, inverse = false }: { label: string; value: num
   );
 }
 
-const TeamReport = function TeamReport({ ref, date, team, players, wellness, sessions, loading }: {
+const TeamReport = function TeamReport({ ref, date, team, phase, players, wellness, sessions, loading }: {
   ref: Ref<HTMLDivElement>;
   date: string;
   team: string;
+  phase: string;
   players: Player[];
   wellness: WellnessEntry[];
   sessions: SessionEntry[];
@@ -196,7 +206,7 @@ const TeamReport = function TeamReport({ ref, date, team, players, wellness, ses
 
   return (
     <div ref={ref} className="mx-auto mt-4 w-full max-w-[920px] bg-card p-6 text-card-foreground sm:p-8">
-      <ReportHeader title={team === "all" ? "Estado del plantel" : team} date={date} eyebrow="Informe general" />
+      <ReportHeader title={team === "all" ? "Estado del plantel" : team} date={date} eyebrow={`Informe general · ${phase === "pre" ? "Antes del entrenamiento" : phase === "post" ? "Después del entrenamiento" : "Pre y post-entreno"}`} />
       {loading ? <p className="py-20 text-center text-muted-foreground">Cargando datos…</p> : (
         <>
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
