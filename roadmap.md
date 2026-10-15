@@ -4,3 +4,4 @@
 - [x] Fix blank general-report exports and verify actual PDF/PNG contents at narrow and desktop widths.
 - [x] Simplify staff reports with wellness traffic lights/gauge and separate post-training PSE bars, durations, pain attribution and comments.
 - [x] Verify populated PNG/PDF exports and phase filtering on desktop and narrow screens.- [x] Módulo Seguimiento Diferenciado (formularios, vista staff, PNG/PDF).
+- [x] Make PDF sections continuous; downloaded populated general and differentiated reports and visually inspected all five pages, with no missing or clipped content.
