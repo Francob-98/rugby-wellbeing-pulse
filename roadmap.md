@@ -2,5 +2,5 @@
 - [x] Generate and inspect a test PDF and PNG with pain maps, then deliver both files.
 - [x] Allow separate pre-training and post-training reports for sharing; verified both PDF downloads.
 - [x] Fix blank general-report exports and verify actual PDF/PNG contents at narrow and desktop widths.
-- [ ] Simplify staff reports with wellness traffic lights/gauge and separate post-training PSE bars, durations, pain attribution and comments.
-- [ ] Verify populated PNG/PDF exports and phase filtering on desktop and narrow screens.
+- [x] Simplify staff reports with wellness traffic lights/gauge and separate post-training PSE bars, durations, pain attribution and comments.
+- [x] Verify populated PNG/PDF exports and phase filtering on desktop and narrow screens.
