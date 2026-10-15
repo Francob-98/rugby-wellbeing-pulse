@@ -12,7 +12,7 @@ import { PlayerPicker, usePlayers, type Player } from "@/components/PlayerPicker
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TEAMS } from "@/lib/constants";
+import { TEAMS, PLAYER_LINES } from "@/lib/constants";
 import { useReportEntries } from "@/lib/staff-data";
 import { avg, today, wellnessPct, type SessionEntry, type WellnessEntry } from "@/lib/metrics";
 
@@ -188,7 +188,6 @@ const TeamReport = function TeamReport({ ref, date, team, phase, players, wellne
   const selectedWellness = wellness.filter((entry) => rosterIds.has(entry.player_id));
   const selectedSessions = sessions.filter((entry) => team === "all" || entry.team === team);
   const title = team === "all" ? "Estado del plantel" : team;
-  const lineLabel = [...new Set([...wellness, ...sessions].map((e) => e.player_line).filter(Boolean))];
   const rpe = avg(selectedSessions.map(entry => entry.rpe));
   const minutes = selectedSessions.reduce((sum, entry) => sum + entry.duration_min, 0);
   const load = selectedSessions.reduce((sum, entry) => sum + entry.load, 0);
