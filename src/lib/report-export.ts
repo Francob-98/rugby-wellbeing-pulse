@@ -65,26 +65,60 @@ export async function exportReport(node: HTMLElement, format: "png" | "pdf", fil
       const { PDFDocument } = await import("pdf-lib");
       const pdf = await PDFDocument.create();
       const sections = Array.from(clone.querySelectorAll<HTMLElement>("[data-report-page]"));
+      const pageWidth = 595.28;
+      const pageHeight = 841.89;
+      const margin = 28;
+      const contentWidth = pageWidth - margin * 2;
+      const contentHeight = pageHeight - margin * 2;
+      let page = pdf.addPage([pageWidth, pageHeight]);
+      let usedHeight = 0;
       for (const section of sections.length ? sections : [clone]) {
         const source = new Image();
         source.src = await capture(section);
         await source.decode();
-        // Keep full-width text readable: overflow continues onto another A4 page.
+        // Sections share the current page instead of forcing a fresh A4 page.
         const ratio = source.width / section.getBoundingClientRect().width;
-        const maxHeight = Math.floor(source.width * 785.89 / 539.28);
+        const scale = contentWidth / source.width;
+        const maxHeight = Math.floor(contentHeight / scale);
         const sectionTop = section.getBoundingClientRect().top;
-        const blocks = Array.from(section.querySelectorAll<HTMLElement>("[data-report-block]"));
+        const protectedRanges: { start: number; end: number }[] = [];
+        const protect = (rect: DOMRect) => {
+          const start = Math.floor((rect.top - sectionTop) * ratio);
+          const end = Math.ceil((rect.bottom - sectionTop) * ratio);
+          if (end > start && end - start < maxHeight) protectedRanges.push({ start, end });
+        };
+        // Keep player rows, charts and headings together when they fit a page.
+        section.querySelectorAll("[data-report-block], svg, header, h2, h3, li").forEach(element => protect(element.getBoundingClientRect()));
+        // Oversized blocks may continue, but never cut through a line of text.
+        const walker = document.createTreeWalker(section, NodeFilter.SHOW_TEXT);
+        while (walker.nextNode()) {
+          if (!walker.currentNode.textContent?.trim()) continue;
+          const range = document.createRange();
+          range.selectNodeContents(walker.currentNode);
+          Array.from(range.getClientRects()).forEach(protect);
+        }
         let offset = 0;
         while (offset < source.height) {
-          let end = Math.min(source.height, offset + maxHeight);
+          const available = Math.floor((contentHeight - usedHeight) / scale);
+          if (available < 1) {
+            page = pdf.addPage([pageWidth, pageHeight]);
+            usedHeight = 0;
+            continue;
+          }
+          let end = Math.min(source.height, offset + available);
           if (end < source.height) {
-            const crossing = blocks.find(block => {
-              const rect = block.getBoundingClientRect();
-              return (rect.top - sectionTop) * ratio < end && (rect.bottom - sectionTop) * ratio > end;
-            });
-            if (crossing) {
-              const start = Math.floor((crossing.getBoundingClientRect().top - sectionTop) * ratio);
-              if (start > offset + maxHeight * 0.35) end = start;
+            // Back up to a safe boundary, including overlapping nested blocks.
+            let previousEnd: number;
+            do {
+              previousEnd = end;
+              for (const block of protectedRanges) {
+                if (block.start < end && block.end > end && block.start >= offset) end = block.start;
+              }
+            } while (end < previousEnd && end > offset);
+            if (end <= offset) {
+              page = pdf.addPage([pageWidth, pageHeight]);
+              usedHeight = 0;
+              continue;
             }
           }
           const canvas = document.createElement("canvas");
@@ -94,10 +128,14 @@ export async function exportReport(node: HTMLElement, format: "png" | "pdf", fil
           if (!context) throw new Error("No se pudo crear el PDF");
           context.drawImage(source, 0, offset, source.width, canvas.height, 0, 0, source.width, canvas.height);
           const image = await pdf.embedPng(canvas.toDataURL("image/png"));
-          const page = pdf.addPage([595.28, 841.89]);
-          const scale = 539.28 / source.width;
-          page.drawImage(image, { x: 28, y: 813.89 - image.height * scale, width: 539.28, height: image.height * scale });
+          const height = image.height * scale;
+          page.drawImage(image, { x: margin, y: pageHeight - margin - usedHeight - height, width: contentWidth, height });
+          usedHeight += height;
           offset = end;
+          if (offset < source.height) {
+            page = pdf.addPage([pageWidth, pageHeight]);
+            usedHeight = 0;
+          }
         }
       }
       const bytes = await pdf.save();
