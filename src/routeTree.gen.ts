@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as PostEntrenoRouteImport } from './routes/post-entreno'
 import { Route as WellnessRouteImport } from './routes/wellness'
 import { Route as AuthenticatedAnalisisRouteImport } from './routes/_authenticated/analisis'
+import { Route as AuthenticatedDiferenciadosRouteImport } from './routes/_authenticated/diferenciados'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
 import { Route as AuthenticatedPlantelRouteImport } from './routes/_authenticated/plantel'
 import { Route as AuthenticatedReportesRouteImport } from './routes/_authenticated/reportes'
@@ -51,6 +52,12 @@ const AuthenticatedAnalisisRoute = AuthenticatedAnalisisRouteImport.update({
   path: '/analisis',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDiferenciadosRoute =
+  AuthenticatedDiferenciadosRouteImport.update({
+    id: '/diferenciados',
+    path: '/diferenciados',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
   id: '/panel',
   path: '/panel',
@@ -90,6 +97,7 @@ export interface FileRoutesByFullPath {
   '/post-entreno': typeof PostEntrenoRoute
   '/wellness': typeof WellnessRoute
   '/analisis': typeof AuthenticatedAnalisisRoute
+  '/diferenciados': typeof AuthenticatedDiferenciadosRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/plantel': typeof AuthenticatedPlantelRoute
   '/reportes': typeof AuthenticatedReportesRoute
@@ -103,6 +111,7 @@ export interface FileRoutesByTo {
   '/post-entreno': typeof PostEntrenoRoute
   '/wellness': typeof WellnessRoute
   '/analisis': typeof AuthenticatedAnalisisRoute
+  '/diferenciados': typeof AuthenticatedDiferenciadosRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/plantel': typeof AuthenticatedPlantelRoute
   '/reportes': typeof AuthenticatedReportesRoute
@@ -118,6 +127,7 @@ export interface FileRoutesById {
   '/post-entreno': typeof PostEntrenoRoute
   '/wellness': typeof WellnessRoute
   '/_authenticated/analisis': typeof AuthenticatedAnalisisRoute
+  '/_authenticated/diferenciados': typeof AuthenticatedDiferenciadosRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/plantel': typeof AuthenticatedPlantelRoute
   '/_authenticated/reportes': typeof AuthenticatedReportesRoute
@@ -133,6 +143,7 @@ export interface FileRouteTypes {
     | '/post-entreno'
     | '/wellness'
     | '/analisis'
+    | '/diferenciados'
     | '/panel'
     | '/plantel'
     | '/reportes'
@@ -146,6 +157,7 @@ export interface FileRouteTypes {
     | '/post-entreno'
     | '/wellness'
     | '/analisis'
+    | '/diferenciados'
     | '/panel'
     | '/plantel'
     | '/reportes'
@@ -160,6 +172,7 @@ export interface FileRouteTypes {
     | '/post-entreno'
     | '/wellness'
     | '/_authenticated/analisis'
+    | '/_authenticated/diferenciados'
     | '/_authenticated/panel'
     | '/_authenticated/plantel'
     | '/_authenticated/reportes'
@@ -220,6 +233,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAnalisisRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/diferenciados': {
+      id: '/_authenticated/diferenciados'
+      path: '/diferenciados'
+      fullPath: '/diferenciados'
+      preLoaderRoute: typeof AuthenticatedDiferenciadosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/panel': {
       id: '/_authenticated/panel'
       path: '/panel'
@@ -267,6 +287,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnalisisRoute: typeof AuthenticatedAnalisisRoute
+  AuthenticatedDiferenciadosRoute: typeof AuthenticatedDiferenciadosRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedPlantelRoute: typeof AuthenticatedPlantelRoute
   AuthenticatedReportesRoute: typeof AuthenticatedReportesRoute
@@ -277,6 +298,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAnalisisRoute: AuthenticatedAnalisisRoute,
+  AuthenticatedDiferenciadosRoute: AuthenticatedDiferenciadosRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedPlantelRoute: AuthenticatedPlantelRoute,
   AuthenticatedReportesRoute: AuthenticatedReportesRoute,
