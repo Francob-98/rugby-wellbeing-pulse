@@ -29,3 +29,4 @@ export const RPE_LABELS: Record<number, string> = {
 
 export type PainZones = Record<string, number>;
 export const SESSION_TYPES = ["Entrenamiento", "Partido"] as const;
+export const PLAYER_LINES = ["Forwards", "Backs"] as const;

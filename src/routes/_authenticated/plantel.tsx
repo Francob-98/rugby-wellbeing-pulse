@@ -44,14 +44,13 @@ function PlantelPage() {
   const { data: me } = useMyRoles();
   const [names, setNames] = useState("");
   const [team, setTeam] = useState<string>(TEAMS[0]);
-  const [position, setPosition] = useState("");
   const [filter, setFilter] = useState("");
   const refresh = () => qc.invalidateQueries({ queryKey: ["players"] });
 
   const add = async (): Promise<void> => {
     const list = names.split("\n").map((n) => n.trim()).filter(Boolean).slice(0, 100);
     if (!list.length) { toast.error("Escribí al menos un nombre"); return; }
-    const { error } = await supabase.from("players").insert(list.map((full_name) => ({ full_name: full_name.slice(0, 100), team, position: position.trim() || null })));
+    const { error } = await supabase.from("players").insert(list.map((full_name) => ({ full_name: full_name.slice(0, 100), team})));
     if (error) { toast.error("No se pudo guardar"); return; }
     toast.success(`${list.length} jugador(es) agregados`);
     setNames("");
@@ -96,7 +95,6 @@ function PlantelPage() {
           <div className="space-y-3">
             <Textarea value={names} onChange={(e) => setNames(e.target.value)} placeholder={"Un nombre por línea\nJuan Pérez\nMartín Gómez"} className="min-h-32 bg-card" />
             <TeamSelect value={team} onChange={setTeam} />
-            <Input value={position} onChange={(e) => setPosition(e.target.value)} placeholder="Puesto (opcional)" maxLength={50} />
             <Button className="w-full" onClick={add}>Agregar</Button>
           </div>
         </Panel>
@@ -104,13 +102,12 @@ function PlantelPage() {
         <Panel title={`Jugadores (${players.length})`} action={<Input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Buscar…" className="h-8 w-40" />}>
           <div className="max-h-[560px] overflow-auto">
             <Table>
-              <TableHeader><TableRow><TableHead>Nombre</TableHead><TableHead>Equipo</TableHead><TableHead>Puesto</TableHead><TableHead>Activo</TableHead><TableHead /></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Nombre</TableHead><TableHead>Equipo</TableHead><TableHead>Activo</TableHead><TableHead /></TableRow></TableHeader>
               <TableBody>
                 {shown.map((p) => (
                   <TableRow key={p.id}>
                     <TableCell className="font-medium">{p.full_name}</TableCell>
                     <TableCell className="w-48"><TeamSelect value={p.team} onChange={(t) => update(p.id, { team: t })} /></TableCell>
-                    <TableCell className="w-36"><Input defaultValue={p.position ?? ""} maxLength={50} onBlur={(e) => e.target.value !== (p.position ?? "") && update(p.id, { position: e.target.value.trim() || null })} /></TableCell>
                     <TableCell><Switch checked={p.active} onCheckedChange={(v) => update(p.id, { active: v })} /></TableCell>
                     <TableCell><Button size="icon" variant="ghost" onClick={() => remove(p.id, p.full_name)}><Trash2 className="size-4" /></Button></TableCell>
                   </TableRow>

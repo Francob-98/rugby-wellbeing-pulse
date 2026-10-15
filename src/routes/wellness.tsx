@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { FormShell, Section } from "@/components/FormShell";
 import { PlayerPicker } from "@/components/PlayerPicker";
+import { LinePicker } from "@/components/LinePicker";
 import { ScalePicker } from "@/components/ScalePicker";
 import { BodyMap, PainLegend } from "@/components/BodyMap";
 import { SubmitDone } from "@/components/SubmitDone";
@@ -33,6 +34,7 @@ const empty: Scores = { sleep_quality: null, fatigue: null, soreness: null, stre
 
 function WellnessPage() {
   const [playerId, setPlayerId] = useRememberedPlayer();
+  const [line, setLine] = useState("");
   const [date, setDate] = useState(today());
   const [hours, setHours] = useState("8");
   const [s, setS] = useState<Scores>(empty);
@@ -45,11 +47,13 @@ function WellnessPage() {
   const submit = async (): Promise<void> => {
     const h = Number(hours);
     if (!playerId) { toast.error("Elegí tu nombre"); return; }
+    if (!line) { toast.error("Indicá si sos forward o back"); return; }
     if (Object.values(s).some((v) => v == null)) { toast.error("Completá todas las escalas"); return; }
     if (!Number.isFinite(h) || h < 0 || h > 16) { toast.error("Horas de sueño inválidas"); return; }
     setSending(true);
     const { error } = await supabase.from("wellness_entries").insert({
       player_id: playerId,
+      player_line: line,
       entry_date: date,
       sleep_hours: h,
       pain_zones: pain,
@@ -72,6 +76,7 @@ function WellnessPage() {
       <div className="space-y-5">
         <Section title="Jugador">
           <PlayerPicker value={playerId} onChange={(id) => setPlayerId(id)} />
+          <LinePicker value={line} onChange={setLine} />
           <div className="space-y-1.5">
             <Label>Fecha</Label>
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-11 bg-card" />

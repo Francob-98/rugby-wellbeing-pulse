@@ -1,0 +1,2 @@
+ALTER TABLE public.wellness_entries ADD COLUMN player_line text CHECK (player_line IN ('Backs','Forwards'));
+ALTER TABLE public.session_entries ADD COLUMN player_line text CHECK (player_line IN ('Backs','Forwards'));

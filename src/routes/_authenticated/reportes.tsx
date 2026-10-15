@@ -12,7 +12,7 @@ import { PlayerPicker, usePlayers, type Player } from "@/components/PlayerPicker
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TEAMS } from "@/lib/constants";
+import { TEAMS, PLAYER_LINES } from "@/lib/constants";
 import { useReportEntries } from "@/lib/staff-data";
 import { avg, today, wellnessPct, type SessionEntry, type WellnessEntry } from "@/lib/metrics";
 
@@ -38,18 +38,19 @@ function ReportsPage() {
   const [team, setTeam] = useState("all");
   const [playerId, setPlayerId] = useState("");
   const [phase, setPhase] = useState("all");
+  const [line, setLine] = useState("all");
   const [exporting, setExporting] = useState<"png" | "pdf" | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const { data: players = [], isLoading: loadingPlayers } = usePlayers();
   const { data, isLoading: loadingEntries } = useReportEntries(date);
 
   const dayWellness = useMemo(
-    () => phase === "post" ? [] : (data?.wellness ?? []).filter((entry) => entry.entry_date === date),
-    [data, date, phase],
+    () => phase === "post" ? [] : (data?.wellness ?? []).filter((entry) => entry.entry_date === date && (line === "all" || entry.player_line === line)),
+    [data, date, phase, line],
   );
   const daySessions = useMemo(
-    () => phase === "pre" ? [] : (data?.sessions ?? []).filter((entry) => entry.entry_date === date),
-    [data, date, phase],
+    () => phase === "pre" ? [] : (data?.sessions ?? []).filter((entry) => entry.entry_date === date && (line === "all" || entry.player_line === line)),
+    [data, date, phase, line],
   );
   const selectedPlayer = players.find((player) => player.id === playerId);
 
@@ -59,7 +60,7 @@ function ReportsPage() {
     setExporting(format);
     try {
       const subject = mode === "team" ? (team === "all" ? "plantel" : team) : selectedPlayer?.full_name ?? "jugador";
-      await exportReport(node, format, `CBMM-${subject.replaceAll(" ", "-")}-${date}-${phase}`);
+      await exportReport(node, format, `CBMM-${subject.replaceAll(" ", "-")}-${date}-${phase}${line === "all" ? "" : `-${line}`}`);
       toast.success(`${format.toUpperCase()} descargado`);
     } catch {
       toast.error("No se pudo crear el informe. Intentá nuevamente.");
@@ -100,6 +101,13 @@ function ReportsPage() {
               <SelectItem value="all">Pre y post-entreno</SelectItem>
               <SelectItem value="pre">Antes · Pre-entreno</SelectItem>
               <SelectItem value="post">Después · Post-entreno</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={line} onValueChange={setLine}>
+            <SelectTrigger className="min-w-44 flex-1 bg-background" aria-label="Forwards o backs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Forwards y backs</SelectItem>
+              {PLAYER_LINES.map((l) => <SelectItem key={l} value={l}>Solo {l.toLowerCase()}</SelectItem>)}
             </SelectContent>
           </Select>
           <label className="flex min-w-48 flex-1 items-center gap-2 rounded-md border border-input bg-background px-3">
