@@ -73,6 +73,7 @@ export type Database = {
           load: number | null
           pain_zones: Json
           player_id: string
+          player_line: string | null
           rpe: number
           session_type: string
           team: string
@@ -87,6 +88,7 @@ export type Database = {
           load?: number | null
           pain_zones?: Json
           player_id: string
+          player_line?: string | null
           rpe: number
           session_type?: string
           team: string
@@ -101,6 +103,7 @@ export type Database = {
           load?: number | null
           pain_zones?: Json
           player_id?: string
+          player_line?: string | null
           rpe?: number
           session_type?: string
           team?: string
@@ -142,6 +145,7 @@ export type Database = {
           mood: number
           pain_zones: Json
           player_id: string
+          player_line: string | null
           sleep_hours: number
           sleep_quality: number
           soreness: number
@@ -155,6 +159,7 @@ export type Database = {
           mood: number
           pain_zones?: Json
           player_id: string
+          player_line?: string | null
           sleep_hours: number
           sleep_quality: number
           soreness: number
@@ -168,6 +173,7 @@ export type Database = {
           mood?: number
           pain_zones?: Json
           player_id?: string
+          player_line?: string | null
           sleep_hours?: number
           sleep_quality?: number
           soreness?: number
