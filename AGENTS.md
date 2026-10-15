@@ -12,4 +12,5 @@
 - Reuse the shared `ClubBrand` and `ClubCrest` components for CBMM identity so the official crest remains consistent and restrained across screens.
 - Keep shareable coach reports as browser-rendered authenticated views exported locally to PNG or PDF so player data is not sent to another service.
 - Export reports from a fixed-width offscreen copy with embedded fonts; compose local PDFs with pdf-lib to avoid Worker package resolution and clipped browser-font layouts.
+- Apply offscreen positioning only to an uncaptured staging parent, never the captured report, because computed logical insets can produce blank PDF and PNG exports.
 - Query reports by exact date with pagination and render every player response separately, preserving each response's pain map instead of merging or dropping entries.

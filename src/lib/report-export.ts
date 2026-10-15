@@ -24,20 +24,19 @@ export async function exportReport(node: HTMLElement, format: "png" | "pdf", fil
   const clone = node.cloneNode(true) as HTMLElement;
   clone.style.width = "920px";
   clone.style.maxWidth = "none";
-  clone.style.position = "absolute";
-  clone.style.left = "-10000px";
-  clone.style.top = "0";
-  document.body.appendChild(clone);
+  // Keep offscreen positioning on a parent that is never captured. Computed
+  // logical inset properties otherwise survive the clone and hide its content.
+  const staging = document.createElement("div");
+  Object.assign(staging.style, { position: "absolute", left: "-10000px", top: "0", width: "920px" });
+  staging.appendChild(clone);
+  document.body.appendChild(staging);
   try {
     const fontEmbedCSS = await embeddedFonts();
     const capture = (element: HTMLElement) => toPng(element, {
       pixelRatio: 2,
       backgroundColor: getComputedStyle(element).backgroundColor,
       fontEmbedCSS,
-      // Reset mx-auto and mt-* as well as the offscreen position: at narrow
-      // viewport widths computed auto margins can move the entire capture out
-      // of the SVG foreignObject, producing a valid but completely white file.
-      style: { position: "relative", left: "0", top: "0", margin: "0", marginLeft: "0", marginRight: "0", marginTop: "0", marginBottom: "0" },
+      style: { position: "static", inset: "auto", insetInline: "auto", insetBlock: "auto", margin: "0", marginBlock: "0", marginInline: "0" },
     });
     let blob: Blob;
     if (format === "png") {
@@ -84,6 +83,6 @@ export async function exportReport(node: HTMLElement, format: "png" | "pdf", fil
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 30_000);
   } finally {
-    clone.remove();
+    staging.remove();
   }
 }
