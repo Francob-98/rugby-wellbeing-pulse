@@ -34,6 +34,7 @@ export async function exportReport(node: HTMLElement, format: "png" | "pdf", fil
       pixelRatio: 2,
       backgroundColor: getComputedStyle(element).backgroundColor,
       fontEmbedCSS,
+      style: { position: "relative", left: "0", top: "0", margin: "0" },
     });
     let blob: Blob;
     if (format === "png") {
