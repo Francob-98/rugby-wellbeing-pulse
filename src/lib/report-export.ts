@@ -34,7 +34,10 @@ export async function exportReport(node: HTMLElement, format: "png" | "pdf", fil
       pixelRatio: 2,
       backgroundColor: getComputedStyle(element).backgroundColor,
       fontEmbedCSS,
-      style: { position: "relative", left: "0", top: "0", margin: "0" },
+      // Reset mx-auto and mt-* as well as the offscreen position: at narrow
+      // viewport widths computed auto margins can move the entire capture out
+      // of the SVG foreignObject, producing a valid but completely white file.
+      style: { position: "relative", left: "0", top: "0", margin: "0", marginLeft: "0", marginRight: "0", marginTop: "0", marginBottom: "0" },
     });
     let blob: Blob;
     if (format === "png") {
@@ -76,8 +79,10 @@ export async function exportReport(node: HTMLElement, format: "png" | "pdf", fil
     const link = document.createElement("a");
     link.href = url;
     link.download = `${filename}.${format}`;
+    document.body.appendChild(link);
     link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30_000);
   } finally {
     clone.remove();
   }
