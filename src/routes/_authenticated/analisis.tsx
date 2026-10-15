@@ -11,6 +11,7 @@ import { Panel, RangeSelect } from "@/components/staff/Widgets";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
+import { AiCompare } from "@/components/staff/AiCompare";
 
 export const Route = createFileRoute("/_authenticated/analisis")({
   head: () => ({
@@ -74,6 +75,8 @@ function AnalisisPage() {
           </Button>
         </div>
       </div>
+
+      <AiCompare />
 
       {result && (
         <Panel title="Resultado">
