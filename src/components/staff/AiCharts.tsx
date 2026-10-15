@@ -50,9 +50,9 @@ function Bars({ c }: { c: AiChart }) {
       {c.labels.map((l, i) => (
         <g key={i}>
           {c.series.map((s, j) => {
-            const h = (s.values[i] / max) * (H - 20), x = pad + i * gw + 4 + j * bw;
+            const h = ((s.values[i] ?? 0) / max) * (H - 20), x = pad + i * gw + 4 + j * bw;
             return <g key={j}><rect x={x} y={H - h} width={bw - 2} height={h} rx="2" fill={COLORS[j % 4]} />
-              <text x={x + bw / 2 - 1} y={H - h - 3} fontSize="9" textAnchor="middle" fill="var(--foreground)">{fmt(s.values[i])}</text></g>;
+              <text x={x + bw / 2 - 1} y={H - h - 3} fontSize="9" textAnchor="middle" fill="var(--foreground)">{fmt((s.values[i] ?? 0))}</text></g>;
           })}
           <text x={pad + i * gw + gw / 2} y={H + 14} fontSize="9" textAnchor="middle" fill="var(--muted-foreground)">{l.slice(0, 12)}</text>
         </g>
@@ -62,16 +62,16 @@ function Bars({ c }: { c: AiChart }) {
 }
 
 function HBars({ c }: { c: AiChart }) {
-  const s = c.series[0], max = maxOf(c), row = 22, W = 320;
+  const s = c.series[0] ?? { name: "", values: [] }, max = maxOf(c), row = 22, W = 320;
   return (
     <svg viewBox={`0 0 ${W} ${c.labels.length * row}`} className="w-full">
       {c.labels.map((l, i) => {
-        const w = (s.values[i] / max) * 170;
+        const w = ((s.values[i] ?? 0) / max) * 170;
         return <g key={i} transform={`translate(0 ${i * row})`}>
           <text x="0" y="14" fontSize="10" fill="var(--foreground)">{l.slice(0, 18)}</text>
           <rect x="110" y="4" width="170" height="12" rx="3" fill="var(--muted)" />
           <rect x="110" y="4" width={w} height="12" rx="3" fill="var(--primary)" />
-          <text x={W - 4} y="14" fontSize="10" textAnchor="end" fill="var(--foreground)">{fmt(s.values[i])}</text>
+          <text x={W - 4} y="14" fontSize="10" textAnchor="end" fill="var(--foreground)">{fmt((s.values[i] ?? 0))}</text>
         </g>;
       })}
     </svg>
@@ -110,7 +110,7 @@ function Radar({ c }: { c: AiChart }) {
 }
 
 function Donut({ c }: { c: AiChart }) {
-  const vals = c.series[0].values, total = vals.reduce((a, b) => a + b, 0) || 1, R = 60, C = 2 * Math.PI * R;
+  const vals = c.series[0]?.values ?? [], total = vals.reduce((a, b) => a + b, 0) || 1, R = 60, C = 2 * Math.PI * R;
   let acc = 0;
   return (
     <div className="flex items-center gap-4">
@@ -124,7 +124,7 @@ function Donut({ c }: { c: AiChart }) {
       <ul className="space-y-1 text-xs">
         {c.labels.map((l, i) => <li key={i} className="flex items-center gap-1.5">
           <svg width="10" height="10"><rect width="10" height="10" rx="2" fill={COLORS[i % 4]} /></svg>
-          {l}: <b>{fmt(vals[i])}</b> ({Math.round((vals[i] / total) * 100)}%)</li>)}
+          {l}: <b>{fmt(vals[i] ?? 0)}</b> ({Math.round(((vals[i] ?? 0) / total) * 100)}%)</li>)}
       </ul>
     </div>
   );
