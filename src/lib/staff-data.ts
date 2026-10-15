@@ -32,3 +32,23 @@ export function useMyRoles() {
     },
   });
 }
+
+export function useReportEntries(date: string) {
+  return useQuery({
+    queryKey: ["report-entries", date],
+    queryFn: async () => {
+      async function readAll(table: "wellness_entries" | "session_entries") {
+        const entries = [];
+        for (let offset = 0; ; offset += 500) {
+          const result = await supabase.from(table).select("*").eq("entry_date", date)
+            .order("created_at").order("id").range(offset, offset + 499);
+          if (result.error) throw result.error;
+          entries.push(...result.data);
+          if (result.data.length < 500) return entries;
+        }
+      }
+      const [wellness, sessions] = await Promise.all([readAll("wellness_entries"), readAll("session_entries")]);
+      return { wellness: wellness as unknown as WellnessEntry[], sessions: sessions as unknown as SessionEntry[] };
+    },
+  });
+}
