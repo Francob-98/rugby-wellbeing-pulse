@@ -25,13 +25,13 @@ export function WellnessGauge({ value }: { value: number | null }) {
   const x = 150 + 88 * Math.cos(angle);
   const y = 140 - 88 * Math.sin(angle);
   return <div className="text-center">
-    <svg viewBox="0 0 300 190" className="mx-auto w-full max-w-80" role="img" aria-label={`Wellness general: ${value == null ? "sin respuestas" : `${Math.round(value)} por ciento`}`}>
+    <svg viewBox="0 0 300 205" className="mx-auto w-full max-w-80" role="img" aria-label={`Wellness general: ${value == null ? "sin respuestas" : `${Math.round(value)} por ciento`}`}>
       <path d="M 30 140 A 120 120 0 0 1 270 140" fill="none" strokeWidth="22" className="stroke-muted" />
       <path d="M 30 140 A 120 120 0 0 1 187.08 25.87" fill="none" strokeWidth="22" className="stroke-destructive" />
       <path d="M 187.08 25.87 A 120 120 0 0 1 220.53 42.92" fill="none" strokeWidth="22" className="stroke-warning" />
       <path d="M 220.53 42.92 A 120 120 0 0 1 270 140" fill="none" strokeWidth="22" className="stroke-success" />
       {value != null && <><line x1="150" y1="140" x2={x} y2={y} strokeWidth="4" className="stroke-foreground" /><circle cx="150" cy="140" r="6" className="fill-foreground" /></>}
-      <text x="150" y="105" textAnchor="middle" className="fill-foreground font-display text-4xl font-bold">{value == null ? "—" : `${Math.round(value)}%`}</text>
+      <text x="150" y="192" textAnchor="middle" className="fill-foreground font-display text-4xl font-bold">{value == null ? "—" : `${Math.round(value)}%`}</text>
       <text x="30" y="173" textAnchor="middle" className="fill-muted-foreground text-xs">0%</text>
       <text x="270" y="173" textAnchor="middle" className="fill-muted-foreground text-xs">100%</text>
     </svg>
@@ -86,7 +86,7 @@ export function ReportPain({ entries, players }: { entries: (WellnessEntry | Ses
   </div>;
 }
 
-export function PostResponse({ entry, player }: { entry: SessionEntry; player?: Player }) {
+export function PostResponse({ entry, player }: { entry: SessionEntry; player: Player | undefined }) {
   return <div className="border-t border-border py-4" data-report-block>
     <ReadableBar label={player?.full_name ?? "Jugador no disponible"} value={entry.rpe} max={10} suffix="/10" effort />
     <p className="mt-2 text-xs text-muted-foreground">{entry.duration_min} min · {entry.session_type ?? "Entrenamiento"} · {entry.team} · {entry.load} UA · {new Date(entry.created_at).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}</p>

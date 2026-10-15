@@ -8,6 +8,8 @@ export const Route = createFileRoute("/_authenticated/jugador/")({
       { name: "description", content: "Elegí un jugador para ver su wellness, carga y dolor." },
       { property: "og:title", content: "Seguimiento individual · CBMM Rugby" },
       { property: "og:description", content: "Datos individuales del plantel." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Pick,

@@ -15,6 +15,8 @@ export const Route = createFileRoute("/_authenticated/jugador/$id")({
       { name: "description", content: "Wellness, carga, ACWR y mapa de dolor de un jugador." },
       { property: "og:title", content: "Ficha de jugador · CBMM Rugby" },
       { property: "og:description", content: "Seguimiento individual de cargas." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: PlayerPage,

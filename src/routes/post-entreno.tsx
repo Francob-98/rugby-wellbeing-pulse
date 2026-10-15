@@ -23,6 +23,8 @@ export const Route = createFileRoute("/post-entreno")({
       { name: "description", content: "Registrá esfuerzo percibido (RPE), duración, fatiga y dolores al terminar el entrenamiento." },
       { property: "og:title", content: "Post entreno · CBMM Rugby" },
       { property: "og:description", content: "Contale al staff cómo terminaste el entrenamiento." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: PostPage,

@@ -9,6 +9,8 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Cuestionarios de wellness pre y post entrenamiento para el plantel del Club Biblioteca Mariano Moreno." },
       { property: "og:title", content: "CBMM Rugby · Wellness y control de cargas" },
       { property: "og:description", content: "Contanos cómo llegás y cómo terminás cada entrenamiento." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Index,
