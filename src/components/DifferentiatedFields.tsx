@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { PainZones } from "@/lib/constants";
 
 export const DIFF_REASONS = ["Dolor muscular", "Golpe", "Rehabilitación", "Retorno progresivo", "Preventivo"] as const;
-export const DIFF_RESTRICTIONS = ["Sin contacto", "Sin carrera máxima", "Volumen reducido", "Solo gimnasio", "Recuperación"] as const;
+export const DIFF_RESTRICTIONS = ["Sin contacto", "Sin carrera máxima", "Volumen reducido", "Trabajo de gimnasio", "Recuperación"] as const;
 export const DIFF_EVOLUTIONS = ["Mejoró", "Igual", "Empeoró"] as const;
 
 export interface DiffData { reason: string; zones: PainZones; restriction: string; evolution: string; comment: string }
@@ -36,16 +36,16 @@ export function DifferentiatedFields({ value, onChange }: { value: DiffData; onC
   return (
     <div className="space-y-4 rounded-lg border-l-4 border-accent bg-accent/5 p-4">
       <p className="text-sm text-muted-foreground">Esta información la ve el kinesiólogo para tu seguimiento.</p>
-      <Pick label="Motivo" value={value.reason} options={DIFF_REASONS} onChange={set("reason")} placeholder="¿Por qué estás en diferenciado?" />
+      <Pick label="Motivo de la adaptación" value={value.reason} options={DIFF_REASONS} onChange={set("reason")} placeholder="¿Por qué estás en diferenciado?" />
       <div className="space-y-2">
         <Label>Zona afectada</Label>
         <PainLegend />
         <BodyMap value={value.zones} onChange={set("zones")} />
       </div>
       <Pick label="Restricción indicada" value={value.restriction} options={DIFF_RESTRICTIONS} onChange={set("restriction")} placeholder="Elegí restricción" />
-      <Pick label="Evolución" value={value.evolution} options={DIFF_EVOLUTIONS} onChange={set("evolution")} placeholder="¿Cómo venís?" />
+      <Pick label="Evolución respecto de la última sesión" value={value.evolution} options={DIFF_EVOLUTIONS} onChange={set("evolution")} placeholder="¿Cómo venís?" />
       <div className="space-y-1.5">
-        <Label>Comentario para el kinesiólogo</Label>
+        <Label>Observación breve</Label>
         <Textarea value={value.comment} onChange={(e) => set("comment")(e.target.value)} maxLength={1000} placeholder="Cómo te sentís, qué te molesta…" className="min-h-20 bg-card" />
       </div>
     </div>

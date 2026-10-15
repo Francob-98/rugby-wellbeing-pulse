@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Textarea } from "@/components/ui/textarea";
 import { useMemo, useRef, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
@@ -33,7 +34,7 @@ export const Route = createFileRoute("/_authenticated/diferenciados")({
 
 interface DiffReport {
   id: string; player_id: string; entry_date: string; source: string; player_line: string | null;
-  reason: string; zones: Record<string, number>; restriction: string; evolution: string; comment: string | null; created_at: string;
+  reason: string; zones: Record<string, number>; restriction: string; evolution: string; comment: string | null; kinesio_note: string | null; created_at: string;
 }
 
 type Light = "rojo" | "amarillo" | "verde";
@@ -171,7 +172,8 @@ function DiffPage() {
                     <div><dt className="text-xs uppercase text-muted-foreground">Restricción</dt><dd className="font-semibold">{last.restriction}</dd></div>
                     <div><dt className="text-xs uppercase text-muted-foreground">Evolución</dt><dd className="font-semibold">{last.evolution}</dd></div>
                     <div><dt className="text-xs uppercase text-muted-foreground">Zona afectada</dt><dd className="font-semibold">{Object.entries(last.zones).map(([z, v]) => `${zoneLabel(z)} (${levelName(v)})`).join(", ") || "—"}</dd></div>
-                    {last.comment && <div className="col-span-2"><dt className="text-xs uppercase text-muted-foreground">Comentario</dt><dd className="italic">“{last.comment}”</dd></div>}
+                    {last.comment && <div className="col-span-2"><dt className="text-xs uppercase text-muted-foreground">Observación del jugador</dt><dd className="italic">“{last.comment}”</dd></div>}
+                    <div className="col-span-2"><dt className="text-xs uppercase text-muted-foreground">Nota del kinesiólogo</dt><dd><KinesioNote report={last} /></dd></div>
                   </dl>
                   <BodyMap value={last.zones} />
                 </div>
@@ -185,6 +187,7 @@ function DiffPage() {
                         <span className="text-muted-foreground">{r.source}</span>
                         <span>{r.reason} · {r.restriction} · {r.evolution}</span>
                         {r.comment && <span className="w-full pl-6 italic text-muted-foreground">“{r.comment}”</span>}
+                        {r.kinesio_note && <span className="w-full pl-6"><strong>Kinesiólogo:</strong> {r.kinesio_note}</span>}
                       </li>
                     ))}
                   </ul>
@@ -195,6 +198,29 @@ function DiffPage() {
           <p className="bg-card px-6 pb-4 text-xs text-muted-foreground">Semáforo orientativo según evolución declarada e intensidad del dolor. No reemplaza la evaluación del kinesiólogo.</p>
         </div>
       )}
+    </div>
+  );
+}
+
+function KinesioNote({ report }: { report: DiffReport }) {
+  const qc = useQueryClient();
+  const [value, setValue] = useState(report.kinesio_note ?? "");
+  const [saving, setSaving] = useState(false);
+  const save = async () => {
+    setSaving(true);
+    const { error } = await supabase.from("differentiated_reports").update({ kinesio_note: value.trim().slice(0, 1000) || null }).eq("id", report.id);
+    setSaving(false);
+    if (error) { toast.error("No se pudo guardar la nota"); return; }
+    toast.success("Nota guardada");
+    qc.invalidateQueries({ queryKey: ["diff-reports"] });
+  };
+  return (
+    <div className="space-y-2">
+      <p className="hidden whitespace-pre-wrap" data-export-show>{report.kinesio_note || "Sin nota"}</p>
+      <div data-export-hide className="space-y-2">
+      <Textarea value={value} onChange={(e) => setValue(e.target.value)} maxLength={1000} placeholder="Indicación de carga, retorno, tratamiento…" className="min-h-16" />
+      <Button size="sm" variant="outline" onClick={save} disabled={saving || value === (report.kinesio_note ?? "")}>{saving ? "Guardando…" : "Guardar nota"}</Button>
+      </div>
     </div>
   );
 }

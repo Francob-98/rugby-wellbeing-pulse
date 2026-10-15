@@ -21,6 +21,7 @@ export type Database = {
           entry_date: string
           evolution: string
           id: string
+          kinesio_note: string | null
           player_id: string
           player_line: string | null
           reason: string
@@ -34,6 +35,7 @@ export type Database = {
           entry_date?: string
           evolution: string
           id?: string
+          kinesio_note?: string | null
           player_id: string
           player_line?: string | null
           reason: string
@@ -47,6 +49,7 @@ export type Database = {
           entry_date?: string
           evolution?: string
           id?: string
+          kinesio_note?: string | null
           player_id?: string
           player_line?: string | null
           reason?: string
