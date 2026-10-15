@@ -43,14 +43,13 @@ function PlantelPage() {
   const { data: players = [] } = usePlayers();
   const { data: me } = useMyRoles();
   const [names, setNames] = useState("");
-  const [team, setTeam] = useState<string>(TEAMS[0]);
   const [filter, setFilter] = useState("");
   const refresh = () => qc.invalidateQueries({ queryKey: ["players"] });
 
   const add = async (): Promise<void> => {
     const list = names.split("\n").map((n) => n.trim()).filter(Boolean).slice(0, 100);
     if (!list.length) { toast.error("Escribí al menos un nombre"); return; }
-    const { error } = await supabase.from("players").insert(list.map((full_name) => ({ full_name: full_name.slice(0, 100), team})));
+    const { error } = await supabase.from("players").insert(list.map((full_name) => ({ full_name: full_name.slice(0, 100), team: "Sin asignar" })));
     if (error) { toast.error("No se pudo guardar"); return; }
     toast.success(`${list.length} jugador(es) agregados`);
     setNames("");
@@ -94,7 +93,6 @@ function PlantelPage() {
         <Panel title="Agregar jugadores">
           <div className="space-y-3">
             <Textarea value={names} onChange={(e) => setNames(e.target.value)} placeholder={"Un nombre por línea\nJuan Pérez\nMartín Gómez"} className="min-h-32 bg-card" />
-            <TeamSelect value={team} onChange={setTeam} />
             <Button className="w-full" onClick={add}>Agregar</Button>
           </div>
         </Panel>
