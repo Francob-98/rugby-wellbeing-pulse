@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { AiCharts } from "@/components/staff/AiCharts";
 
 const ROWS: { key: keyof CompareMetrics; label: string; higherBetter: boolean | null; unit?: string }[] = [
   { key: "wellness", label: "Wellness general", higherBetter: true, unit: "%" },
@@ -86,7 +87,7 @@ export function AiCompare() {
       <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
         <Field label="Pregunta opcional para la IA" className="flex-1">
           <Textarea rows={2} maxLength={600} value={question} onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Ej.: ¿Los forwards recuperaron mejor el sueño que la semana pasada?" />
+            placeholder="Ej.: Mostrame en un radar el wellness, o un ranking de zonas de dolor" />
         </Field>
         <Button onClick={run} disabled={loading || !canRun}><GitCompare className="size-4" />{loading ? "Comparando…" : "Comparar"}</Button>
       </div>
@@ -101,6 +102,7 @@ export function AiCompare() {
             </table>
           </div>
           <p className="text-sm">{result.summary}</p>
+          <AiCharts charts={result.charts ?? []} />
           {result.answer && <div className="rounded-md bg-muted/50 p-3 text-sm"><span className="font-semibold">Respuesta: </span>{result.answer}</div>}
           {result.changes.length > 0 && (
             <ul className="space-y-2">{result.changes.map((c, i) => (
