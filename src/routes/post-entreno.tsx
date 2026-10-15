@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { FormShell, Section } from "@/components/FormShell";
 import { PlayerPicker } from "@/components/PlayerPicker";
+import { LinePicker } from "@/components/LinePicker";
 import { ScalePicker } from "@/components/ScalePicker";
 import { BodyMap, PainLegend } from "@/components/BodyMap";
 import { SubmitDone } from "@/components/SubmitDone";
@@ -32,6 +33,7 @@ export const Route = createFileRoute("/post-entreno")({
 
 function PostPage() {
   const [playerId, setPlayerId] = useRememberedPlayer();
+  const [line, setLine] = useState("");
   const [team, setTeam] = useState("");
   const [kind, setKind] = useState("");
   const [date, setDate] = useState(today());
@@ -46,6 +48,7 @@ function PostPage() {
   const submit = async (): Promise<void> => {
     const d = Number(duration);
     if (!playerId) { toast.error("Elegí tu nombre"); return; }
+    if (!line) { toast.error("Indicá si sos forward o back"); return; }
     if (!team) { toast.error("Elegí el equipo en el que participaste"); return; }
     if (!kind) { toast.error("Elegí si fue entrenamiento o partido"); return; }
     if (!rpe || !fatigue) { toast.error("Completá RPE y fatiga"); return; }
@@ -53,6 +56,7 @@ function PostPage() {
     setSending(true);
     const { error } = await supabase.from("session_entries").insert({
       player_id: playerId,
+      player_line: line,
       entry_date: date,
       team,
       session_type: kind,
@@ -79,6 +83,7 @@ function PostPage() {
       <div className="space-y-5">
         <Section title="Sesión">
           <PlayerPicker value={playerId} onChange={(id) => setPlayerId(id)} />
+          <LinePicker value={line} onChange={setLine} />
           <div className="space-y-1.5">
             <Label>Equipo en el que participaste</Label>
             <Select value={team} onValueChange={setTeam}>

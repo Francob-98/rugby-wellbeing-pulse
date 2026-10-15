@@ -38,18 +38,19 @@ function ReportsPage() {
   const [team, setTeam] = useState("all");
   const [playerId, setPlayerId] = useState("");
   const [phase, setPhase] = useState("all");
+  const [line, setLine] = useState("all");
   const [exporting, setExporting] = useState<"png" | "pdf" | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const { data: players = [], isLoading: loadingPlayers } = usePlayers();
   const { data, isLoading: loadingEntries } = useReportEntries(date);
 
   const dayWellness = useMemo(
-    () => phase === "post" ? [] : (data?.wellness ?? []).filter((entry) => entry.entry_date === date),
-    [data, date, phase],
+    () => phase === "post" ? [] : (data?.wellness ?? []).filter((entry) => entry.entry_date === date && (line === "all" || entry.player_line === line)),
+    [data, date, phase, line],
   );
   const daySessions = useMemo(
-    () => phase === "pre" ? [] : (data?.sessions ?? []).filter((entry) => entry.entry_date === date),
-    [data, date, phase],
+    () => phase === "pre" ? [] : (data?.sessions ?? []).filter((entry) => entry.entry_date === date && (line === "all" || entry.player_line === line)),
+    [data, date, phase, line],
   );
   const selectedPlayer = players.find((player) => player.id === playerId);
 
