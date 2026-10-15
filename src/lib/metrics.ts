@@ -1,6 +1,7 @@
 import { format, subDays, parseISO, differenceInCalendarDays } from "date-fns";
 
 export interface WellnessEntry {
+  player_line?: string | null;
   id: string;
   player_id: string;
   entry_date: string;
@@ -15,6 +16,7 @@ export interface WellnessEntry {
 }
 
 export interface SessionEntry {
+  player_line?: string | null;
   id: string;
   player_id: string;
   entry_date: string;
