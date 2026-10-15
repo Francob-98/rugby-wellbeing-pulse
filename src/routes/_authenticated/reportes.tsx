@@ -60,7 +60,7 @@ function ReportsPage() {
     setExporting(format);
     try {
       const subject = mode === "team" ? (team === "all" ? "plantel" : team) : selectedPlayer?.full_name ?? "jugador";
-      await exportReport(node, format, `CBMM-${subject.replaceAll(" ", "-")}-${date}-${phase}`);
+      await exportReport(node, format, `CBMM-${subject.replaceAll(" ", "-")}-${date}-${phase}${line === "all" ? "" : `-${line}`}`);
       toast.success(`${format.toUpperCase()} descargado`);
     } catch {
       toast.error("No se pudo crear el informe. Intentá nuevamente.");
@@ -101,6 +101,13 @@ function ReportsPage() {
               <SelectItem value="all">Pre y post-entreno</SelectItem>
               <SelectItem value="pre">Antes · Pre-entreno</SelectItem>
               <SelectItem value="post">Después · Post-entreno</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={line} onValueChange={setLine}>
+            <SelectTrigger className="min-w-44 flex-1 bg-background" aria-label="Forwards o backs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Forwards y backs</SelectItem>
+              {PLAYER_LINES.map((l) => <SelectItem key={l} value={l}>Solo {l.toLowerCase()}</SelectItem>)}
             </SelectContent>
           </Select>
           <label className="flex min-w-48 flex-1 items-center gap-2 rounded-md border border-input bg-background px-3">
@@ -181,6 +188,7 @@ const TeamReport = function TeamReport({ ref, date, team, phase, players, wellne
   const selectedWellness = wellness.filter((entry) => rosterIds.has(entry.player_id));
   const selectedSessions = sessions.filter((entry) => team === "all" || entry.team === team);
   const title = team === "all" ? "Estado del plantel" : team;
+  const lineLabel = [...new Set([...wellness, ...sessions].map((e) => e.player_line).filter(Boolean))];
   const rpe = avg(selectedSessions.map(entry => entry.rpe));
   const minutes = selectedSessions.reduce((sum, entry) => sum + entry.duration_min, 0);
   const load = selectedSessions.reduce((sum, entry) => sum + entry.load, 0);
