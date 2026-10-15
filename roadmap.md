@@ -1,3 +1,3 @@
 - [x] Correct PDF/PNG export layout and include every player response for the selected date.
 - [x] Generate and inspect a test PDF and PNG with pain maps, then deliver both files.
-- [ ] Allow separate pre-training and post-training reports for sharing.
+- [x] Allow separate pre-training and post-training reports for sharing; verified both PDF downloads.
