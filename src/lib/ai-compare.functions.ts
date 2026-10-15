@@ -146,8 +146,20 @@ export const compareDates = createServerFn({ method: "POST" })
     }
     try {
       const p = JSON.parse(text);
-      return { a, b, summary: String(p.summary ?? ""), changes: p.changes ?? [], recommendations: p.recommendations ?? [], answer: String(p.answer ?? "") };
+      return { a, b, summary: String(p.summary ?? ""), changes: p.changes ?? [], recommendations: p.recommendations ?? [], answer: String(p.answer ?? ""), charts: sanitizeCharts(p.charts) };
     } catch {
       return { error: "La IA no devolvió una respuesta válida." };
     }
   });
+
+function sanitizeCharts(raw: unknown): AiChart[] {
+  if (!Array.isArray(raw)) return [];
+  return (raw as AiChart[]).slice(0, 3).flatMap((c) => {
+    const labels = (c?.labels ?? []).slice(0, 12).map(String);
+    const series = (c?.series ?? []).slice(0, 4).map((s) => ({
+      name: String(s.name ?? ""),
+      values: labels.map((_, i) => (Number.isFinite(Number(s.values?.[i])) ? Number(s.values[i]) : 0)),
+    }));
+    return labels.length && series.length ? [{ type: c.type, title: String(c.title ?? ""), insight: String(c.insight ?? ""), labels, series }] : [];
+  });
+}
