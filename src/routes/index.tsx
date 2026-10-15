@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Sun, Flag, LineChart } from "lucide-react";
-import { ClubBrand, ClubCrest } from "@/components/ClubBrand";
+import { ClubBrand } from "@/components/ClubBrand";
 
 export const Route = createFileRoute("/")({
   head: () => ({
