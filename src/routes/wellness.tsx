@@ -7,10 +7,12 @@ import { PlayerPicker } from "@/components/PlayerPicker";
 import { LinePicker } from "@/components/LinePicker";
 import { ScalePicker } from "@/components/ScalePicker";
 import { BodyMap, PainLegend } from "@/components/BodyMap";
+import { DifferentiatedFields, diffError, emptyDiff, type DiffData } from "@/components/DifferentiatedFields";
 import { SubmitDone } from "@/components/SubmitDone";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRememberedPlayer } from "@/lib/use-remembered-player";
 import { today } from "@/lib/metrics";
 import type { PainZones } from "@/lib/constants";
@@ -39,6 +41,8 @@ function WellnessPage() {
   const [hours, setHours] = useState("8");
   const [s, setS] = useState<Scores>(empty);
   const [pain, setPain] = useState<PainZones>({});
+  const [isDiff, setIsDiff] = useState("");
+  const [diff, setDiff] = useState<DiffData>(emptyDiff);
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -50,6 +54,9 @@ function WellnessPage() {
     if (!line) { toast.error("Indicá si sos forward o back"); return; }
     if (Object.values(s).some((v) => v == null)) { toast.error("Completá todas las escalas"); return; }
     if (!Number.isFinite(h) || h < 0 || h > 16) { toast.error("Horas de sueño inválidas"); return; }
+    if (!isDiff) { toast.error("Indicá si hoy entrenás en Diferenciados"); return; }
+    const de = isDiff === "si" ? diffError(diff) : null;
+    if (de) { toast.error(de); return; }
     setSending(true);
     const { error } = await supabase.from("wellness_entries").insert({
       player_id: playerId,
@@ -59,15 +66,17 @@ function WellnessPage() {
       pain_zones: pain,
       ...(s as Required<{ [K in keyof Scores]: number }>),
     });
+    let diffErr = null;
+    if (!error && isDiff === "si") diffErr = (await supabase.from("differentiated_reports").insert({ player_id: playerId, entry_date: date, source: "Pre-entreno", player_line: line, reason: diff.reason, zones: diff.zones, restriction: diff.restriction, evolution: diff.evolution, comment: diff.comment.trim().slice(0, 1000) || null })).error;
     setSending(false);
-    if (error) { toast.error("No se pudo enviar. Probá de nuevo."); return; }
+    if (error || diffErr) { toast.error("No se pudo enviar. Probá de nuevo."); return; }
     setDone(true);
   };
 
   if (done)
     return (
       <FormShell kicker="Pre-entreno" title="Wellness">
-        <SubmitDone message="Tu wellness quedó registrado. ¡Buen entrenamiento!" onAgain={() => { setS(empty); setPain({}); setDone(false); }} />
+        <SubmitDone message="Tu wellness quedó registrado. ¡Buen entrenamiento!" onAgain={() => { setS(empty); setPain({}); setDiff(emptyDiff); setDone(false); }} />
       </FormShell>
     );
 
@@ -81,6 +90,17 @@ function WellnessPage() {
             <Label>Fecha</Label>
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-11 bg-card" />
           </div>
+        </Section>
+
+        <Section title="Equipo">
+          <div className="space-y-1.5">
+            <Label>¿Hoy entrenás en Diferenciados?</Label>
+            <Select value={isDiff} onValueChange={setIsDiff}>
+              <SelectTrigger className="h-11 bg-card"><SelectValue placeholder="Elegí una opción" /></SelectTrigger>
+              <SelectContent><SelectItem value="no">No, entreno normal</SelectItem><SelectItem value="si">Sí, Diferenciados</SelectItem></SelectContent>
+            </Select>
+          </div>
+          {isDiff === "si" && <DifferentiatedFields value={diff} onChange={setDiff} />}
         </Section>
 
         <Section title="Sueño">
