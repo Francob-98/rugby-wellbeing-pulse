@@ -16,24 +16,44 @@ export type CompareMetrics = {
   rpe: number | null; duracion: number | null; carga: number; zonasDolor: number;
 };
 export type CompareChange = { player: string; trend: "mejora" | "igual" | "empeora"; detail: string };
+export type AiChart = {
+  type: "barras" | "barras_horizontales" | "lineas" | "radar" | "dona";
+  title: string; insight: string; labels: string[];
+  series: { name: string; values: number[] }[];
+};
 export type CompareResult =
-  | { a: CompareMetrics; b: CompareMetrics; summary: string; changes: CompareChange[]; recommendations: string[]; answer: string }
+  | { a: CompareMetrics; b: CompareMetrics; summary: string; changes: CompareChange[]; recommendations: string[]; answer: string; charts: AiChart[] }
   | { error: string };
 
 const SYSTEM = `Sos un asistente de un preparador físico de rugby. Comparás datos subjetivos del plantel entre dos fechas (A = anterior/referencia, B = a comparar).
 Wellness pre-entreno: escalas 1-5 donde 5 es SIEMPRE lo mejor (sleep_quality, fatigue=frescura, soreness=sin dolor, stress=calma, mood). Post-entreno: rpe 1-10, fatigue 1-5 donde 5 es agotado, load = RPE×minutos. pain_zones: zona→1 leve, 2 moderado, 3 intenso.
 Explicá la evolución de fatiga, dolor, sueño y carga entre A y B, con lenguaje simple para entrenadores. No hagas diagnósticos médicos. Si hay una pregunta del preparador, respondela en "answer" (si no, "answer" vacío).
-"changes": jugadores con cambios relevantes (máx 15), trend mejora/igual/empeora. Español rioplatense, breve.`;
+"changes": jugadores con cambios relevantes (máx 15), trend mejora/igual/empeora. Español rioplatense, breve.
+"charts": de 1 a 3 gráficos elegidos según lo que mejor responda al análisis o pregunta, con valores numéricos REALES tomados de los datos (nunca inventes):
+- "radar": perfil de wellness (Sueño, Frescura, Sin dolor, Calma, Ánimo, escala 1-5) con una serie por fecha.
+- "barras": comparar A vs B por métrica, o forwards vs backs; una serie por fecha o grupo.
+- "barras_horizontales": rankings (zonas de dolor más frecuentes, PSE por jugador); una sola serie.
+- "lineas": evolución por jugador o por métrica entre A y B (labels = ["Fecha A","Fecha B"]).
+- "dona": proporciones del grupo (ej. RPE ≥8 vs resto, con dolor vs sin dolor); una sola serie.
+Cada serie debe tener tantos valores como labels. Máx 12 labels. "insight": una frase simple que explique qué muestra.`;
 
 const SCHEMA = {
   type: "object", additionalProperties: false,
-  required: ["summary", "changes", "recommendations", "answer"],
+  required: ["summary", "changes", "recommendations", "answer", "charts"],
   properties: {
     summary: { type: "string" },
     answer: { type: "string" },
     recommendations: { type: "array", items: { type: "string" } },
     changes: { type: "array", items: { type: "object", additionalProperties: false, required: ["player", "trend", "detail"],
       properties: { player: { type: "string" }, trend: { type: "string", enum: ["mejora", "igual", "empeora"] }, detail: { type: "string" } } } },
+    charts: { type: "array", items: { type: "object", additionalProperties: false, required: ["type", "title", "insight", "labels", "series"],
+      properties: {
+        type: { type: "string", enum: ["barras", "barras_horizontales", "lineas", "radar", "dona"] },
+        title: { type: "string" }, insight: { type: "string" },
+        labels: { type: "array", items: { type: "string" } },
+        series: { type: "array", items: { type: "object", additionalProperties: false, required: ["name", "values"],
+          properties: { name: { type: "string" }, values: { type: "array", items: { type: "number" } } } } },
+      } } },
   },
 };
 
@@ -126,8 +146,20 @@ export const compareDates = createServerFn({ method: "POST" })
     }
     try {
       const p = JSON.parse(text);
-      return { a, b, summary: String(p.summary ?? ""), changes: p.changes ?? [], recommendations: p.recommendations ?? [], answer: String(p.answer ?? "") };
+      return { a, b, summary: String(p.summary ?? ""), changes: p.changes ?? [], recommendations: p.recommendations ?? [], answer: String(p.answer ?? ""), charts: sanitizeCharts(p.charts) };
     } catch {
       return { error: "La IA no devolvió una respuesta válida." };
     }
   });
+
+function sanitizeCharts(raw: unknown): AiChart[] {
+  if (!Array.isArray(raw)) return [];
+  return (raw as AiChart[]).slice(0, 3).flatMap((c) => {
+    const labels = (c?.labels ?? []).slice(0, 12).map(String);
+    const series = (c?.series ?? []).slice(0, 4).map((s) => ({
+      name: String(s.name ?? ""),
+      values: labels.map((_, i) => (Number.isFinite(Number(s.values?.[i])) ? Number(s.values[i]) : 0)),
+    }));
+    return labels.length && series.length ? [{ type: c.type, title: String(c.title ?? ""), insight: String(c.insight ?? ""), labels, series }] : [];
+  });
+}
