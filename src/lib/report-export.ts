@@ -24,6 +24,8 @@ export async function exportReport(node: HTMLElement, format: "png" | "pdf", fil
   const clone = node.cloneNode(true) as HTMLElement;
   clone.style.width = "920px";
   clone.style.maxWidth = "none";
+  clone.querySelectorAll("[data-export-hide]").forEach((el) => el.remove());
+  clone.querySelectorAll<HTMLElement>("[data-export-show]").forEach((el) => el.classList.remove("hidden"));
   // Keep offscreen positioning on a parent that is never captured. Computed
   // logical inset properties otherwise survive the clone and hide its content.
   const staging = document.createElement("div");

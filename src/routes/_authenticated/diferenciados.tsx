@@ -216,9 +216,11 @@ function KinesioNote({ report }: { report: DiffReport }) {
   };
   return (
     <div className="space-y-2">
-      <p className="hidden whitespace-pre-wrap" data-print-note>{value || "—"}</p>
+      <p className="hidden whitespace-pre-wrap" data-export-show>{report.kinesio_note || "Sin nota"}</p>
+      <div data-export-hide className="space-y-2">
       <Textarea value={value} onChange={(e) => setValue(e.target.value)} maxLength={1000} placeholder="Indicación de carga, retorno, tratamiento…" className="min-h-16" />
       <Button size="sm" variant="outline" onClick={save} disabled={saving || value === (report.kinesio_note ?? "")}>{saving ? "Guardando…" : "Guardar nota"}</Button>
+      </div>
     </div>
   );
 }
