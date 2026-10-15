@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Sun, Flag, LineChart } from "lucide-react";
-import { ClubBrand, ClubCrest } from "@/components/ClubBrand";
+import { ClubBrand } from "@/components/ClubBrand";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -20,10 +20,7 @@ function Index() {
   return (
     <div className="stripe-bg flex min-h-screen flex-col bg-pitch text-pitch-foreground">
       <div className="mx-auto flex w-full max-w-xl flex-1 flex-col px-6 py-10">
-        <div className="flex items-center justify-between gap-5">
-          <ClubBrand className="text-pitch-foreground" />
-          <ClubCrest className="size-16 opacity-15 grayscale" />
-        </div>
+        <ClubBrand className="text-pitch-foreground" />
         <p className="mt-8 font-display text-sm font-semibold uppercase tracking-[0.2em] text-pitch-foreground/60">Club Biblioteca Mariano Moreno</p>
         <h1 className="mt-4 font-display text-6xl font-bold uppercase leading-[0.9]">
           Cómo<br />llegás.<br /><span className="text-primary">Cómo</span><br /><span className="text-primary">terminás.</span>
