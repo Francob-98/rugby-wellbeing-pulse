@@ -64,12 +64,39 @@ export async function exportReport(node: HTMLElement, format: "png" | "pdf", fil
       const pdf = await PDFDocument.create();
       const sections = Array.from(clone.querySelectorAll<HTMLElement>("[data-report-page]"));
       for (const section of sections.length ? sections : [clone]) {
-        const image = await pdf.embedPng(await capture(section));
-        const page = pdf.addPage([595.28, 841.89]);
-        const scale = Math.min(539.28 / image.width, 785.89 / image.height);
-        const width = image.width * scale;
-        const height = image.height * scale;
-        page.drawImage(image, { x: (595.28 - width) / 2, y: 813.89 - height, width, height });
+        const source = new Image();
+        source.src = await capture(section);
+        await source.decode();
+        // Keep full-width text readable: overflow continues onto another A4 page.
+        const ratio = source.width / section.getBoundingClientRect().width;
+        const maxHeight = Math.floor(source.width * 785.89 / 539.28);
+        const sectionTop = section.getBoundingClientRect().top;
+        const blocks = Array.from(section.querySelectorAll<HTMLElement>("[data-report-block]"));
+        let offset = 0;
+        while (offset < source.height) {
+          let end = Math.min(source.height, offset + maxHeight);
+          if (end < source.height) {
+            const crossing = blocks.find(block => {
+              const rect = block.getBoundingClientRect();
+              return (rect.top - sectionTop) * ratio < end && (rect.bottom - sectionTop) * ratio > end;
+            });
+            if (crossing) {
+              const start = Math.floor((crossing.getBoundingClientRect().top - sectionTop) * ratio);
+              if (start > offset + maxHeight * 0.35) end = start;
+            }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = source.width;
+          canvas.height = end - offset;
+          const context = canvas.getContext("2d");
+          if (!context) throw new Error("No se pudo crear el PDF");
+          context.drawImage(source, 0, offset, source.width, canvas.height, 0, 0, source.width, canvas.height);
+          const image = await pdf.embedPng(canvas.toDataURL("image/png"));
+          const page = pdf.addPage([595.28, 841.89]);
+          const scale = 539.28 / source.width;
+          page.drawImage(image, { x: 28, y: 813.89 - image.height * scale, width: 539.28, height: image.height * scale });
+          offset = end;
+        }
       }
       const bytes = await pdf.save();
       blob = new Blob([new Uint8Array(bytes)], { type: "application/pdf" });

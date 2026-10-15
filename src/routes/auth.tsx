@@ -15,6 +15,8 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Ingreso para preparadores físicos y entrenadores del CBMM." },
       { property: "og:title", content: "Acceso staff · CBMM Rugby" },
       { property: "og:description", content: "Panel de control de cargas del plantel." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AuthPage,

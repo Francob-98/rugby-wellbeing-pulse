@@ -21,6 +21,8 @@ export const Route = createFileRoute("/wellness")({
       { name: "description", content: "Cuestionario de wellness antes del entrenamiento: sueño, fatiga, dolor, estrés y ánimo." },
       { property: "og:title", content: "Wellness pre-entreno · CBMM Rugby" },
       { property: "og:description", content: "Contale al staff cómo llegás al entrenamiento." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: WellnessPage,

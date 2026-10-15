@@ -3,17 +3,18 @@ import { useMemo, useRef, useState, type Ref } from "react";
 import { exportReport } from "@/lib/report-export";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { Activity, CalendarDays, Download, FileText, Flag, Sun, UserRound, Users } from "lucide-react";
+import { CalendarDays, Download, FileText, UserRound, Users } from "lucide-react";
 import { toast } from "sonner";
 import { BodyMap, PainLegend, zoneLabel } from "@/components/BodyMap";
 import { ClubBrand } from "@/components/ClubBrand";
+import { PostResponse, ReadableBar, ReportPain, TrafficLight, WellnessOverview } from "@/components/staff/ReportVisuals";
 import { PlayerPicker, usePlayers, type Player } from "@/components/PlayerPicker";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TEAMS } from "@/lib/constants";
 import { useReportEntries } from "@/lib/staff-data";
-import { avg, painHeat, today, wellnessPct, type SessionEntry, type WellnessEntry } from "@/lib/metrics";
+import { avg, today, wellnessPct, type SessionEntry, type WellnessEntry } from "@/lib/metrics";
 
 export const Route = createFileRoute("/_authenticated/reportes")({
   head: () => ({
@@ -132,10 +133,10 @@ function ReportsPage() {
 
 function ReportHeader({ title, date, eyebrow }: { title: string; date: string; eyebrow: string }) {
   return (
-    <header className="flex items-start justify-between gap-6 border-b-2 border-primary pb-5">
+    <header className="flex flex-wrap items-start justify-between gap-4 border-b-2 border-primary pb-5">
       <div>
         <p className="font-display text-sm font-semibold uppercase tracking-widest text-primary">{eyebrow}</p>
-        <h2 className="mt-1 font-display text-4xl font-bold uppercase leading-none">{title}</h2>
+        <h2 className="mt-1 break-words font-display text-3xl font-bold uppercase leading-none">{title}</h2>
         <p className="mt-2 text-sm capitalize text-muted-foreground">{format(parseISO(date), "EEEE d 'de' MMMM 'de' yyyy", { locale: es })}</p>
       </div>
       <ClubBrand compact className="text-foreground" />
@@ -178,99 +179,68 @@ const TeamReport = function TeamReport({ ref, date, team, phase, players, wellne
   const rosterIds = new Set(roster.map((player) => player.id));
   const selectedWellness = wellness.filter((entry) => rosterIds.has(entry.player_id));
   const selectedSessions = sessions.filter((entry) => team === "all" || entry.team === team);
-  const reportPlayerIds = new Set([...selectedWellness.map((entry) => entry.player_id), ...selectedSessions.map((entry) => entry.player_id)]);
-  const relevantPlayers = players.filter((player) => reportPlayerIds.has(player.id));
-  const wellnessAverage = avg(selectedWellness.map(wellnessPct));
-  const rpeAverage = avg(selectedSessions.map((entry) => entry.rpe));
-  const totalLoad = selectedSessions.reduce((sum, entry) => sum + entry.load, 0);
-  const totalMinutes = selectedSessions.reduce((sum, entry) => sum + entry.duration_min, 0);
-  const pain = painHeat([...selectedWellness, ...selectedSessions]);
-  const topPain = Object.entries(pain).sort((a, b) => b[1] - a[1]).slice(0, 4);
-  const flagged = relevantPlayers.map((player) => {
-    const playerWellness = selectedWellness.filter((entry) => entry.player_id === player.id);
-    const playerSessions = selectedSessions.filter((entry) => entry.player_id === player.id);
-    const highRpe = playerSessions.reduce((highest, entry) => Math.max(highest, entry.rpe), 0);
-    const prePain = [...new Set(playerWellness.flatMap((entry) => Object.keys(entry.pain_zones ?? {})))];
-    const postPain = [...new Set(playerSessions.flatMap((entry) => Object.keys(entry.pain_zones ?? {})))];
-    const reasons = [
-      highRpe >= 8 ? `RPE ${highRpe}` : null,
-      prePain.length ? `dolor pre: ${prePain.map(zoneLabel).join(", ")}` : playerWellness.some((entry) => entry.soreness < 5) ? "dolor muscular pre" : null,
-      postPain.length ? `dolor post: ${postPain.map(zoneLabel).join(", ")}` : null,
-    ].filter((reason): reason is string => Boolean(reason));
-    return { player, reasons };
-  }).filter((item) => item.reasons.length);
-  const sleep = avg(selectedWellness.map((entry) => entry.sleep_quality));
-  const fatigue = avg(selectedWellness.map((entry) => entry.fatigue));
-  const soreness = avg(selectedWellness.map((entry) => entry.soreness));
-  const mood = avg(selectedWellness.map((entry) => entry.mood));
-
+  const title = team === "all" ? "Estado del plantel" : team;
+  const rpe = avg(selectedSessions.map(entry => entry.rpe));
+  const minutes = selectedSessions.reduce((sum, entry) => sum + entry.duration_min, 0);
+  const load = selectedSessions.reduce((sum, entry) => sum + entry.load, 0);
+  const chunks = <T,>(entries: T[], size: number): T[][] => Array.from({ length: Math.ceil(entries.length / size) }, (_, index) => entries.slice(index * size, (index + 1) * size));
+  const preAttention = selectedWellness.filter(entry => wellnessPct(entry) < 70 || entry.soreness < 5 || Object.keys(entry.pain_zones ?? {}).length > 0);
   return (
-    <div ref={ref} className="mx-auto mt-4 w-full max-w-[920px] bg-card p-6 text-card-foreground sm:p-8">
-      <ReportHeader title={team === "all" ? "Estado del plantel" : team} date={date} eyebrow={`Informe general · ${phase === "pre" ? "Antes del entrenamiento" : phase === "post" ? "Después del entrenamiento" : "Pre y post-entreno"}`} />
-      {loading ? <p className="py-20 text-center text-muted-foreground">Cargando datos…</p> : (
-        <>
-          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Metric label="Respuestas pre" value={`${selectedWellness.length}/${roster.length}`} note="jugadores" />
-            <Metric label="Wellness medio" value={wellnessAverage == null ? "—" : `${Math.round(wellnessAverage)}%`} tone={wellnessAverage == null ? "default" : wellnessAverage < 60 ? "bad" : wellnessAverage < 70 ? "warn" : "good"} />
-            <Metric label="RPE medio" value={rpeAverage == null ? "—" : rpeAverage.toFixed(1)} note={`${selectedSessions.length} respuestas post`} tone={rpeAverage != null && rpeAverage >= 8 ? "warn" : "default"} />
-            <Metric label="Carga total" value={totalLoad ? `${totalLoad}` : "—"} note={`${totalMinutes || 0} minutos · UA`} />
+    <div ref={ref} className="report-sheet mx-auto mt-4 w-full max-w-[920px] bg-card text-card-foreground">
+      {loading ? <p className="p-12 text-center">Cargando datos…</p> : <>
+        {phase !== "post" && <>
+          <div data-report-page className="bg-card p-6 sm:p-8">
+            <ReportHeader title={title} date={date} eyebrow="Antes del entrenamiento · Wellness" />
+            <p className="my-5 text-sm"><strong>{selectedWellness.length} respuestas</strong> de {new Set(selectedWellness.map(e => e.player_id)).size} jugadores · {roster.length} jugadores activos</p>
+            <WellnessOverview entries={selectedWellness} />
+            <ReportFooter />
           </div>
-
-          <div className="mt-6 grid gap-6 sm:grid-cols-[1.25fr_0.75fr]">
-            <section className="border-l-4 border-primary pl-5">
-              <div className="mb-4 flex items-center gap-2"><Sun className="text-primary" /><h3 className="font-display text-xl font-bold uppercase">Estado pre-entreno</h3></div>
-              {selectedWellness.length ? (
-                <div className="space-y-4">
-                  <ScoreBar label="Calidad del sueño" value={sleep} />
-                  <ScoreBar label="Frescura muscular" value={fatigue} />
-                  <ScoreBar label="Sin dolor muscular" value={soreness} />
-                  <ScoreBar label="Ánimo" value={mood} />
-                </div>
-              ) : <EmptyText text="Sin respuestas pre-entreno para esta fecha." />}
-            </section>
-            <section className="border-l-4 border-accent pl-5">
-              <div className="mb-4 flex items-center gap-2"><Flag className="text-accent" /><h3 className="font-display text-xl font-bold uppercase">Carga post-entreno</h3></div>
-              {selectedSessions.length ? (
-                <div className="space-y-3 text-sm">
-                  <ReportRow label="Entrenamientos" value={String(selectedSessions.filter((entry) => entry.session_type !== "Partido").length)} />
-                  <ReportRow label="Partidos" value={String(selectedSessions.filter((entry) => entry.session_type === "Partido").length)} />
-                  <ReportRow label="Duración media" value={`${Math.round(totalMinutes / selectedSessions.length)} min`} />
-                  <ReportRow label="Carga media" value={`${Math.round(totalLoad / selectedSessions.length)} UA`} />
-                </div>
-              ) : <EmptyText text="Sin respuestas post-entreno para esta fecha." />}
-            </section>
+          <div data-report-page className="bg-card p-6 sm:p-8">
+            <ReportHeader title="Molestias pre-entreno" date={date} eyebrow={title} />
+            <ReportPain entries={selectedWellness} players={players} />
+            <ReportFooter />
           </div>
-
-          <div className="mt-7 grid gap-6 sm:grid-cols-[1fr_1fr]">
-            <section className="border-t border-border pt-5">
-               <div className="mb-3 flex items-center gap-2"><Activity className="text-primary" /><h3 className="font-display text-xl font-bold uppercase">Seguimiento prioritario</h3></div>
-              {flagged.length ? (
-                <ul className="divide-y divide-border">
-                  {flagged.map(({ player, reasons }) => (
-                    <li key={player.id} className="flex items-start justify-between gap-3 py-2.5 text-sm">
-                       <span className="font-semibold">{player.full_name}</span><span className="max-w-[62%] text-right text-destructive">{reasons.join(" · ")}</span>
-                    </li>
-                  ))}
-                </ul>
-               ) : <EmptyText text="Sin jugadores con RPE 8 o más ni dolor muscular reportado." />}
-            </section>
-            <section className="border-t border-border pt-5">
-              <h3 className="mb-3 font-display text-xl font-bold uppercase">Dolor reportado</h3>
-              <div className="grid grid-cols-[1.25fr_0.75fr] items-center gap-3">
-                <BodyMap heat={pain} className="gap-1" />
-                <div>
-                  <PainLegend heat />
-                  <ul className="mt-3 space-y-1 text-xs">
-                    {topPain.map(([zone, count]) => <li key={zone} className="flex justify-between gap-2"><span>{zoneLabel(zone)}</span><strong>{count}</strong></li>)}
-                    {!topPain.length && <li className="text-muted-foreground">Sin dolor reportado.</li>}
-                  </ul>
-                </div>
-              </div>
-            </section>
+          {chunks(preAttention, 8).map((group, index) => <div key={`pre-${index}`} data-report-page className="bg-card p-6 sm:p-8">
+            <ReportHeader title="Seguimiento pre-entreno" date={date} eyebrow={`${title} · ${index + 1}`} />
+            <ul className="mt-4 divide-y divide-border">{group.map(entry => <li key={entry.id} data-report-block className="space-y-2 py-4">
+              <div className="flex flex-wrap items-center justify-between gap-3"><strong>{players.find(p => p.id === entry.player_id)?.full_name ?? "Jugador no disponible"}</strong><strong>{wellnessPct(entry)}%</strong></div>
+              <TrafficLight value={wellnessPct(entry)} />
+              <p className="text-sm text-muted-foreground">Sueño {entry.sleep_quality}/5 · Frescura {entry.fatigue}/5 · Sin dolor {entry.soreness}/5 · Calma {entry.stress}/5 · Ánimo {entry.mood}/5 · {entry.sleep_hours} h dormidas</p>
+              {(entry.soreness < 5 || Object.keys(entry.pain_zones ?? {}).length > 0) && <p className="text-sm font-semibold text-destructive">Dolor muscular informado · revisar molestias aunque el promedio sea favorable.</p>}
+            </li>)}</ul><ReportFooter />
+          </div>)}
+        </>}
+        {phase !== "pre" && <>
+          <div data-report-page className="bg-card p-6 sm:p-8">
+            <ReportHeader title={title} date={date} eyebrow="Después del entrenamiento · PSE y carga" />
+            <div className="report-metrics my-6 grid grid-cols-2 gap-3">
+              <Metric label="Respuestas post" value={String(selectedSessions.length)} note={`${new Set(selectedSessions.map(e => e.player_id)).size} jugadores`} />
+              <Metric label="PSE promedio" value={rpe?.toFixed(1) ?? "—"} note="esfuerzo percibido · sobre 10" tone={rpe != null && rpe >= 8 ? "bad" : "default"} />
+              <Metric label="Duración media" value={selectedSessions.length ? String(Math.round(minutes / selectedSessions.length)) : "—"} note="minutos por respuesta" />
+              <Metric label="Carga total" value={String(load)} note="UA · PSE × minutos" />
+            </div>
+            <ReadableBar label="PSE promedio del grupo" value={rpe} max={10} suffix="/10" effort />
+            <p className="mt-3 text-xs text-muted-foreground">1–4: menor esfuerzo · 5–7: esfuerzo elevado · 8–10: seguimiento prioritario</p>
+            <div className="mt-6 space-y-4">
+              <ReadableBar label="Entrenamiento · PSE promedio" value={avg(selectedSessions.filter(e => e.session_type !== "Partido").map(e => e.rpe))} max={10} suffix="/10" effort />
+              <ReadableBar label="Partido · PSE promedio" value={avg(selectedSessions.filter(e => e.session_type === "Partido").map(e => e.rpe))} max={10} suffix="/10" effort />
+            </div>
+            <p className="mt-6 border-l-4 border-destructive pl-3 text-sm"><strong>{new Set(selectedSessions.filter(e => e.rpe >= 8).map(e => e.player_id)).size} jugadores con PSE ≥8</strong> · {new Set(selectedSessions.filter(e => Object.keys(e.pain_zones ?? {}).length).map(e => e.player_id)).size} con zonas de dolor informadas.</p>
+            {!selectedSessions.length && <EmptyText text="Sin respuestas post-entreno para esta fecha." />}
+            <ReportFooter />
           </div>
-        </>
-      )}
-      <ReportFooter />
+          <div data-report-page className="bg-card p-6 sm:p-8">
+            <ReportHeader title="Dolor post-entreno" date={date} eyebrow={title} />
+            <ReportPain entries={selectedSessions} players={players} />
+            <ReportFooter />
+          </div>
+          {chunks(selectedSessions, 6).map((group, index) => <div key={`post-${index}`} data-report-page className="bg-card p-6 sm:p-8">
+            <ReportHeader title="PSE por jugador" date={date} eyebrow={`${title} · Duración y comentarios · ${index + 1}`} />
+            <div className="mt-5">{group.map(entry => <PostResponse key={entry.id} entry={entry} player={players.find(p => p.id === entry.player_id)} />)}</div>
+            <ReportFooter />
+          </div>)}
+        </>}
+      </>}
     </div>
   );
 };
@@ -291,7 +261,7 @@ const PlayerReport = function PlayerReport({ ref, date, player, wellness, sessio
     ...playerSessions.map((entry) => ({ kind: "post" as const, entry })),
   ];
   return (
-    <div ref={ref} className="mx-auto mt-4 w-full max-w-[920px] bg-card text-card-foreground">
+    <div ref={ref} className="report-sheet mx-auto mt-4 w-full max-w-[920px] bg-card text-card-foreground">
       {loading ? <p className="p-12">Cargando datos…</p> : allEntries.length ? allEntries.map((item, index) => (
         <div key={item.entry.id} data-report-page className="bg-card p-6 sm:p-8">
           <ReportHeader title={player.full_name} date={date} eyebrow={`${player.team} · Respuesta ${index + 1} de ${allEntries.length}`} />
@@ -299,7 +269,7 @@ const PlayerReport = function PlayerReport({ ref, date, player, wellness, sessio
           <p className="mt-1 text-sm text-muted-foreground">Registrada: {format(parseISO(item.entry.created_at), "dd/MM/yyyy HH:mm")}</p>
           {item.kind === "pre" ? (
             <div className="mt-5 space-y-3">
-              <Metric label="Wellness" value={`${wellnessPct(item.entry)}%`} />
+              <WellnessOverview entries={[item.entry]} />
               <ReportRow label="Horas dormidas" value={`${item.entry.sleep_hours} h`} />
               <ScoreBar label="Calidad del sueño" value={item.entry.sleep_quality} />
               <ScoreBar label="Frescura muscular (5 = fresco)" value={item.entry.fatigue} />
@@ -309,7 +279,7 @@ const PlayerReport = function PlayerReport({ ref, date, player, wellness, sessio
             </div>
           ) : (
             <div className="mt-5 space-y-3">
-              <div className="grid grid-cols-2 gap-3"><Metric label="RPE" value={`${item.entry.rpe}/10`} tone={item.entry.rpe >= 8 ? "bad" : "default"} /><Metric label="Carga" value={`${item.entry.load} UA`} /></div>
+              <ReadableBar label="PSE · Esfuerzo percibido" value={item.entry.rpe} max={10} suffix="/10" effort /><div className="grid grid-cols-2 gap-3"><Metric label="PSE (RPE)" value={`${item.entry.rpe}/10`} tone={item.entry.rpe >= 8 ? "bad" : "default"} /><Metric label="Carga" value={`${item.entry.load} UA`} /></div>
               <ReportRow label="Tipo de sesión" value={item.entry.session_type ?? "Entrenamiento"} />
               <ReportRow label="Equipo" value={item.entry.team} />
               <ReportRow label="Duración" value={`${item.entry.duration_min} min`} />
@@ -346,7 +316,7 @@ function EmptyText({ text }: { text: string }) {
 
 function ReportFooter() {
   return (
-    <footer className="mt-7 flex items-center justify-between border-t border-border pt-3 text-[11px] text-muted-foreground">
+    <footer className="mt-7 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 text-[11px] text-muted-foreground">
       <span>CBMM Rugby · Control de cargas</span>
       <span>Datos subjetivos declarados por los jugadores</span>
     </footer>

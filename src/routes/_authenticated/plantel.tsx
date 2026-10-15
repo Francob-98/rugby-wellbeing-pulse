@@ -22,6 +22,8 @@ export const Route = createFileRoute("/_authenticated/plantel")({
       { name: "description", content: "Administrá jugadores, links de cuestionarios y accesos del staff." },
       { property: "og:title", content: "Plantel · CBMM Rugby" },
       { property: "og:description", content: "Gestión del plantel." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: PlantelPage,
