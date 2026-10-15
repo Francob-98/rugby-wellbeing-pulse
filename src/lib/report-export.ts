@@ -24,17 +24,19 @@ export async function exportReport(node: HTMLElement, format: "png" | "pdf", fil
   const clone = node.cloneNode(true) as HTMLElement;
   clone.style.width = "920px";
   clone.style.maxWidth = "none";
-  clone.style.position = "absolute";
-  clone.style.left = "-10000px";
-  clone.style.top = "0";
-  document.body.appendChild(clone);
+  // Keep offscreen positioning on a parent that is never captured. Computed
+  // logical inset properties otherwise survive the clone and hide its content.
+  const staging = document.createElement("div");
+  Object.assign(staging.style, { position: "absolute", left: "-10000px", top: "0", width: "920px" });
+  staging.appendChild(clone);
+  document.body.appendChild(staging);
   try {
     const fontEmbedCSS = await embeddedFonts();
     const capture = (element: HTMLElement) => toPng(element, {
       pixelRatio: 2,
       backgroundColor: getComputedStyle(element).backgroundColor,
       fontEmbedCSS,
-      style: { position: "relative", left: "0", top: "0", margin: "0" },
+      style: { position: "static", inset: "auto", insetInline: "auto", insetBlock: "auto", margin: "0", marginBlock: "0", marginInline: "0" },
     });
     let blob: Blob;
     if (format === "png") {
@@ -76,9 +78,11 @@ export async function exportReport(node: HTMLElement, format: "png" | "pdf", fil
     const link = document.createElement("a");
     link.href = url;
     link.download = `${filename}.${format}`;
+    document.body.appendChild(link);
     link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30_000);
   } finally {
-    clone.remove();
+    staging.remove();
   }
 }
