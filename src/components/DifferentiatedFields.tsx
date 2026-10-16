@@ -11,11 +11,13 @@ export const DIFF_EVOLUTIONS = ["Mejoró", "Igual", "Empeoró"] as const;
 export interface DiffData { reason: string; zones: PainZones; restriction: string; evolution: string; comment: string }
 export const emptyDiff: DiffData = { reason: "", zones: {}, restriction: "", evolution: "", comment: "" };
 
-export function diffError(d: DiffData) {
+export type DiffVariant = "pre" | "post";
+
+export function diffError(d: DiffData, variant: DiffVariant) {
   if (!d.reason) return "Indicá el motivo del diferenciado";
   if (!Object.keys(d.zones).length) return "Marcá la zona afectada en el mapa";
   if (!d.restriction) return "Indicá la restricción";
-  if (!d.evolution) return "Indicá cómo evolucionaste";
+  if (variant === "post" && !d.evolution) return "Indicá cómo evolucionaste";
   return null;
 }
 
@@ -31,11 +33,14 @@ function Pick({ label, value, options, onChange, placeholder }: { label: string;
   );
 }
 
-export function DifferentiatedFields({ value, onChange }: { value: DiffData; onChange: (v: DiffData) => void }) {
+export function DifferentiatedFields({ value, onChange, variant }: { value: DiffData; onChange: (v: DiffData) => void; variant: DiffVariant }) {
   const set = <K extends keyof DiffData>(k: K) => (v: DiffData[K]) => onChange({ ...value, [k]: v });
+  const isPre = variant === "pre";
   return (
     <div className="space-y-4 rounded-lg border-l-4 border-accent bg-accent/5 p-4">
-      <p className="text-sm text-muted-foreground">Esta información la ve el kinesiólogo para tu seguimiento.</p>
+      <p className="text-sm text-muted-foreground">
+        {isPre ? "Solo 3 datos rápidos para que el kinesiólogo sepa cómo llegás." : "Esta información la ve el kinesiólogo para tu seguimiento."}
+      </p>
       <Pick label="Motivo de la adaptación" value={value.reason} options={DIFF_REASONS} onChange={set("reason")} placeholder="¿Por qué estás en diferenciado?" />
       <div className="space-y-2">
         <Label>Zona afectada</Label>
@@ -43,10 +48,16 @@ export function DifferentiatedFields({ value, onChange }: { value: DiffData; onC
         <BodyMap value={value.zones} onChange={set("zones")} />
       </div>
       <Pick label="Restricción indicada" value={value.restriction} options={DIFF_RESTRICTIONS} onChange={set("restriction")} placeholder="Elegí restricción" />
-      <Pick label="Evolución respecto de la última sesión" value={value.evolution} options={DIFF_EVOLUTIONS} onChange={set("evolution")} placeholder="¿Cómo venís?" />
+      {!isPre && <Pick label="Evolución respecto de la última sesión" value={value.evolution} options={DIFF_EVOLUTIONS} onChange={set("evolution")} placeholder="¿Cómo venís?" />}
       <div className="space-y-1.5">
-        <Label>Observación breve</Label>
-        <Textarea value={value.comment} onChange={(e) => set("comment")(e.target.value)} maxLength={1000} placeholder="Cómo te sentís, qué te molesta…" className="min-h-20 bg-card" />
+        <Label>{isPre ? "Observación breve (opcional)" : "¿Cómo te sentiste?"}</Label>
+        <Textarea
+          value={value.comment}
+          onChange={(e) => set("comment")(e.target.value)}
+          maxLength={1000}
+          placeholder={isPre ? "Algo que el kinesiólogo deba saber antes de empezar…" : "Cómo respondió el cuerpo, qué te molestó, cómo terminaste…"}
+          className={isPre ? "min-h-16 bg-card" : "min-h-24 bg-card"}
+        />
       </div>
     </div>
   );
