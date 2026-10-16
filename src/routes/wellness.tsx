@@ -63,7 +63,7 @@ function WellnessPage() {
       player_line: line,
       entry_date: date,
       sleep_hours: h,
-      pain_zones: pain,
+      pain_zones: isDiff === "si" ? diff.zones : pain,
       ...(s as Required<{ [K in keyof Scores]: number }>),
     });
     let diffErr = null;
@@ -121,10 +121,12 @@ function WellnessPage() {
           <ScalePicker label="Ánimo" value={s.mood} onChange={set("mood")} lowLabel="Muy bajo" highLabel="Excelente" />
         </Section>
 
-        <Section title="¿Dónde te duele?">
-          <PainLegend />
-          <BodyMap value={pain} onChange={setPain} />
-        </Section>
+        {isDiff !== "si" && (
+          <Section title="¿Dónde te duele?">
+            <PainLegend />
+            <BodyMap value={pain} onChange={setPain} />
+          </Section>
+        )}
 
         <Button size="lg" className="h-14 w-full font-display text-xl uppercase" onClick={submit} disabled={sending}>
           {sending ? "Enviando…" : "Enviar wellness"}
