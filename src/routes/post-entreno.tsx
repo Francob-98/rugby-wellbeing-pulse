@@ -56,7 +56,7 @@ function PostPage() {
     if (!kind) { toast.error("Elegí si fue entrenamiento o partido"); return; }
     if (!rpe || !fatigue) { toast.error("Completá RPE y fatiga"); return; }
     if (!Number.isInteger(d) || d < 1 || d > 300) { toast.error("Duración inválida (minutos)"); return; }
-    const de = isDiff ? diffError(diff) : null;
+    const de = isDiff ? diffError(diff, "post") : null;
     if (de) { toast.error(de); return; }
     setSending(true);
     const { error } = await supabase.from("session_entries").insert({
@@ -117,7 +117,7 @@ function PostPage() {
           </div>
         </Section>
 
-        {isDiff && <Section title="Seguimiento diferenciado"><DifferentiatedFields value={diff} onChange={setDiff} /></Section>}
+        {isDiff && <Section title="Seguimiento diferenciado"><DifferentiatedFields value={diff} onChange={setDiff} variant="post" /></Section>}
 
         <Section title="Esfuerzo">
           <ScalePicker label="RPE" value={rpe} onChange={setRpe} min={1} max={10} lowLabel="Muy suave" highLabel="Máximo" hint={rpe ? RPE_LABELS[rpe] : undefined} />
