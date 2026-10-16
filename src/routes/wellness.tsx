@@ -55,7 +55,7 @@ function WellnessPage() {
     if (Object.values(s).some((v) => v == null)) { toast.error("Completá todas las escalas"); return; }
     if (!Number.isFinite(h) || h < 0 || h > 16) { toast.error("Horas de sueño inválidas"); return; }
     if (!isDiff) { toast.error("Indicá si hoy entrenás en Diferenciados"); return; }
-    const de = isDiff === "si" ? diffError(diff) : null;
+    const de = isDiff === "si" ? diffError(diff, "pre") : null;
     if (de) { toast.error(de); return; }
     setSending(true);
     const { error } = await supabase.from("wellness_entries").insert({
@@ -100,7 +100,7 @@ function WellnessPage() {
               <SelectContent><SelectItem value="no">No, entreno normal</SelectItem><SelectItem value="si">Sí, Diferenciados</SelectItem></SelectContent>
             </Select>
           </div>
-          {isDiff === "si" && <DifferentiatedFields value={diff} onChange={setDiff} />}
+          {isDiff === "si" && <DifferentiatedFields value={diff} onChange={setDiff} variant="pre" />}
         </Section>
 
         <Section title="Sueño">
