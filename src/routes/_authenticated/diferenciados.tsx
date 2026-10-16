@@ -170,7 +170,7 @@ function DiffPage() {
                   <dl className="grid grid-cols-2 gap-3 text-sm">
                     <div><dt className="text-xs uppercase text-muted-foreground">Motivo</dt><dd className="font-semibold">{last.reason}</dd></div>
                     <div><dt className="text-xs uppercase text-muted-foreground">Restricción</dt><dd className="font-semibold">{last.restriction}</dd></div>
-                    <div><dt className="text-xs uppercase text-muted-foreground">Evolución</dt><dd className="font-semibold">{last.evolution}</dd></div>
+                    <div><dt className="text-xs uppercase text-muted-foreground">Evolución</dt><dd className="font-semibold">{last.evolution || "—"}</dd></div>
                     <div><dt className="text-xs uppercase text-muted-foreground">Zona afectada</dt><dd className="font-semibold">{Object.entries(last.zones).map(([z, v]) => `${zoneLabel(z)} (${levelName(v)})`).join(", ") || "—"}</dd></div>
                     {last.comment && <div className="col-span-2"><dt className="text-xs uppercase text-muted-foreground">Observación del jugador</dt><dd className="italic">“{last.comment}”</dd></div>}
                     <div className="col-span-2"><dt className="text-xs uppercase text-muted-foreground">Nota del kinesiólogo</dt><dd><KinesioNote report={last} /></dd></div>
@@ -185,7 +185,7 @@ function DiffPage() {
                         <span className="inline-block size-3 rounded-full" style={{ background: LIGHT_FILL[light(r)] }} />
                         <span className="w-28 font-semibold">{fmt(r.entry_date)}</span>
                         <span className="text-muted-foreground">{r.source}</span>
-                        <span>{r.reason} · {r.restriction} · {r.evolution}</span>
+                        <span>{r.reason} · {r.restriction}{r.evolution ? ` · ${r.evolution}` : ""}</span>
                         {r.comment && <span className="w-full pl-6 italic text-muted-foreground">“{r.comment}”</span>}
                         {r.kinesio_note && <span className="w-full pl-6"><strong>Kinesiólogo:</strong> {r.kinesio_note}</span>}
                       </li>
