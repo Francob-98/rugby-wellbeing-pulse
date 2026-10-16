@@ -39,7 +39,7 @@ export type Database = {
           player_id: string
           player_line?: string | null
           reason: string
-          restriction: string
+          restriction?: string
           source: string
           zones?: Json
         }

@@ -16,8 +16,10 @@ export type DiffVariant = "pre" | "post";
 export function diffError(d: DiffData, variant: DiffVariant) {
   if (!d.reason) return "Indicá el motivo del diferenciado";
   if (!Object.keys(d.zones).length) return "Marcá la zona afectada en el mapa";
-  if (!d.restriction) return "Indicá la restricción";
-  if (variant === "post" && !d.evolution) return "Indicá cómo evolucionaste";
+  if (variant === "post") {
+    if (!d.restriction) return "Indicá la restricción";
+    if (!d.evolution) return "Indicá cómo evolucionaste";
+  }
   return null;
 }
 
@@ -39,7 +41,7 @@ export function DifferentiatedFields({ value, onChange, variant }: { value: Diff
   return (
     <div className="space-y-4 rounded-lg border-l-4 border-accent bg-accent/5 p-4">
       <p className="text-sm text-muted-foreground">
-        {isPre ? "Solo 3 datos rápidos para que el kinesiólogo sepa cómo llegás." : "Esta información la ve el kinesiólogo para tu seguimiento."}
+        {isPre ? "Rápido: elegí el motivo y marcá la zona en el mapa." : "Esta información la ve el kinesiólogo para tu seguimiento."}
       </p>
       <Pick label="Motivo de la adaptación" value={value.reason} options={DIFF_REASONS} onChange={set("reason")} placeholder="¿Por qué estás en diferenciado?" />
       <div className="space-y-2">
@@ -47,7 +49,7 @@ export function DifferentiatedFields({ value, onChange, variant }: { value: Diff
         <PainLegend />
         <BodyMap value={value.zones} onChange={set("zones")} />
       </div>
-      <Pick label="Restricción indicada" value={value.restriction} options={DIFF_RESTRICTIONS} onChange={set("restriction")} placeholder="Elegí restricción" />
+      {!isPre && <Pick label="Restricción indicada" value={value.restriction} options={DIFF_RESTRICTIONS} onChange={set("restriction")} placeholder="Elegí restricción" />}
       {!isPre && <Pick label="Evolución respecto de la última sesión" value={value.evolution} options={DIFF_EVOLUTIONS} onChange={set("evolution")} placeholder="¿Cómo venís?" />}
       <div className="space-y-1.5">
         <Label>{isPre ? "Observación breve (opcional)" : "¿Cómo te sentiste?"}</Label>
