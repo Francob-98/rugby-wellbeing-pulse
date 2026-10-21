@@ -1,14 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { FileUp, Loader2, Trash2, AlertTriangle } from "lucide-react";
+import { FileUp, FileText, Loader2, Trash2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePlayers } from "@/components/PlayerPicker";
 import { TEAMS, SESSION_TYPES } from "@/lib/constants";
 import { extractGpsPdf, type GpsRow } from "@/lib/gps-extract.functions";
-import { Panel, Kpi } from "@/components/staff/Widgets";
+import { Panel } from "@/components/staff/Widgets";
+import { GpsReport } from "@/components/staff/GpsReport";
+import { exportReport } from "@/lib/report-export";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -195,15 +197,15 @@ function History({ selected, onSelect }: { selected: string | null; onSelect: (i
         <ul className="space-y-1">
           {sessions.map((s) => (
             <li key={s.id} className="flex items-center gap-1">
-              <button onClick={() => onSelect(s.id)} className={`flex-1 rounded-md px-2 py-1.5 text-left text-sm ${current?.id === s.id ? "bg-secondary font-medium" : "hover:bg-muted"}`}>
+              <Button variant="ghost" onClick={() => onSelect(s.id)} className={`h-auto min-w-0 flex-1 justify-start whitespace-normal px-2 py-1.5 text-left text-sm ${current?.id === s.id ? "bg-secondary font-medium" : "hover:bg-muted"}`}><span>
                 {s.session_date} · {s.team}<span className="block text-xs text-muted-foreground">{s.session_type}{s.description ? ` · ${s.description}` : ""}</span>
-              </button>
+              </span></Button>
               <Button size="icon" variant="ghost" onClick={() => del(s.id)}><Trash2 className="size-4" /></Button>
             </li>
           ))}
         </ul>
       </Panel>
-      {current && <SessionDetail s={current} />}
+      {current && <SessionDetail key={current.id} s={current} />}
     </div>
   );
 }
