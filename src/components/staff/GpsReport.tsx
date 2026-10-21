@@ -18,25 +18,34 @@ const detailMetrics = [
 const fmt = (n: number | null | undefined) => n == null ? "—" : n.toLocaleString("es-AR", { maximumFractionDigits: 1 });
 const name = (e: GpsReportEntry) => e.players?.full_name ?? e.gps_name;
 
-function Ranking({ entries, metric, isValid }: { entries: GpsReportEntry[]; metric: Metric; isValid: (e: GpsReportEntry) => boolean }) {
-  const sorted = [...entries].sort((a, b) => Number(b[metric.key] ?? 0) - Number(a[metric.key] ?? 0));
-  const max = Math.max(1, ...entries.map(e => Number(e[metric.key] ?? 0)));
+function SessionComparison({ entries, isValid }: { entries: GpsReportEntry[]; isValid: (e: GpsReportEntry) => boolean }) {
+  const sorted = [...entries].sort((a, b) => name(a).localeCompare(name(b), "es"));
+  const maxima = metrics.map(metric => Math.max(1, ...entries.map(e => {
+    const value = e[metric.key];
+    return typeof value === "number" && Number.isFinite(value) ? value : 0;
+  })));
   return <section data-report-page className="border-t border-border bg-card px-5 py-6 sm:px-8">
-    <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
-      <h3 className="font-display text-2xl font-bold uppercase">{metric.title}</h3>
-      <p className="text-sm text-muted-foreground">Promedio: <b className="text-foreground">{fmt(mean(entries, metric.key))} {metric.unit}</b></p>
+    <h3 className="mb-5 font-display text-2xl font-bold uppercase">La sesión, jugador por jugador</h3>
+    <div className="gps-comparison-head gps-comparison-grid border-b border-border bg-muted py-3">
+      <span className="px-2 text-sm font-semibold">Jugador</span>
+      {metrics.map(metric => <span key={metric.key} className="px-2 text-sm font-semibold">{metric.title}<span className="block font-normal text-muted-foreground">{metric.unit}</span></span>)}
     </div>
-    <div className="space-y-4">{sorted.map(e => {
-      const value = e[metric.key];
-      const number = typeof value === "number" ? value : null;
-      return <div key={e.id} data-report-block className="space-y-1.5">
-        <div className="flex items-baseline justify-between gap-4 text-base"><span className="min-w-0 break-words font-medium capitalize">{name(e)}</span><b className="shrink-0 tabular-nums">{fmt(number)} <span className="text-xs font-normal text-muted-foreground">{metric.unit}</span></b></div>
-        <svg role="img" aria-label={`${name(e)}: ${fmt(number)} ${metric.unit}`} viewBox="0 0 800 22" className="h-5 w-full" preserveAspectRatio="none">
-          <rect width="800" height="22" rx="3" fill="var(--muted)" />
-          <rect width={Math.max(0, ((number ?? 0) / max) * 800)} height="22" rx="3" fill={isValid(e) ? metric.paint : "var(--warning)"} />
-        </svg>
-      </div>;
-    })}</div>
+    <div>{sorted.map(e => <div key={e.id} data-report-block className="gps-comparison-grid gap-y-3 border-b border-border py-4">
+      <div className="gps-comparison-name min-w-0 px-2"><h4 className="break-words text-base font-semibold capitalize">{name(e)}</h4>{!isValid(e) && <p className="mt-1 text-xs text-warning">Pendiente de revisión</p>}</div>
+      {metrics.map((metric, index) => {
+        const value = e[metric.key];
+        const number = typeof value === "number" && Number.isFinite(value) ? value : null;
+        return <div key={metric.key} className="min-w-0 px-2">
+          <p className="gps-comparison-label mb-1 text-xs text-muted-foreground">{metric.title}</p>
+          <p className="mb-2 text-base font-semibold tabular-nums">{fmt(number)} <span className="text-xs font-normal text-muted-foreground">{metric.unit}</span></p>
+          <svg role="img" aria-label={`${name(e)} · ${metric.title}: ${fmt(number)} ${metric.unit}`} viewBox="0 0 200 10" className="h-2.5 w-full" preserveAspectRatio="none">
+            <rect width="200" height="10" rx="2" fill="var(--muted)" />
+            <rect width={Math.max(0, ((number ?? 0) / maxima[index]) * 200)} height="10" rx="2" fill={metric.paint} />
+          </svg>
+        </div>;
+      })}
+    </div>)}</div>
+    <p className="mt-4 text-xs text-muted-foreground">Cada columna tiene su propia escala: la barra completa corresponde al mayor valor registrado en esa métrica. «—»: dato no disponible.</p>
   </section>;
 }
 
@@ -56,9 +65,9 @@ export const GpsReport = forwardRef<HTMLDivElement, {
       <div className="report-metrics grid grid-cols-2 gap-5 border-t border-border pt-5">
         {[["Jugadores", entries.length, ""], ["Distancia media", mean(entries, "distance_m"), "m"], ["Ritmo medio", mean(entries, "m_per_min"), "m/min"], ["Alta velocidad media", mean(entries, "hsd_m"), "m"]].map(([label, value, unit]) => <div key={String(label)}><p className="text-sm text-muted-foreground">{label}</p><p className="mt-1 font-display text-3xl font-bold">{fmt(typeof value === "number" ? value : null)} <span className="text-sm font-normal">{unit}</span></p></div>)}
       </div>
-      <p className="mt-5 text-sm text-muted-foreground">Promedios de los valores guardados disponibles; incluyen ceros y no reemplazan datos faltantes.{clean.length !== entries.length && " Barras amarillas: registros pendientes de revisión, incluidos en los promedios."}</p>
+      <p className="mt-5 text-sm text-muted-foreground">Promedios de los valores guardados disponibles; incluyen ceros y no reemplazan datos faltantes.{clean.length !== entries.length && " Los registros pendientes de revisión están identificados junto al nombre e incluidos en los promedios."}</p>
     </section>
-    {metrics.map(metric => <Ranking key={metric.key} entries={entries} metric={metric} isValid={isValid} />)}
+    <SessionComparison entries={entries} isValid={isValid} />
     <section data-report-page className="border-t border-border bg-card px-5 py-6 sm:px-8">
       <h3 className="mb-5 font-display text-2xl font-bold uppercase">Detalle por jugador</h3>
       <div className="space-y-5">{entries.map(e => {
