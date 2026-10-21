@@ -129,30 +129,8 @@
   container-type: inline-size;
 }
 
-.gps-comparison-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-.gps-comparison-name {
-  grid-column: 1 / -1;
-}
-.gps-comparison-head {
-  display: none;
-}
 
 @container (min-width: 600px) {
-  .gps-comparison-grid {
-    grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(0, 1fr));
-  }
-  .gps-comparison-name {
-    grid-column: auto;
-  }
-  .gps-comparison-head {
-    display: grid;
-  }
-  .gps-comparison-label {
-    display: none;
-  }
   .report-columns {
     grid-template-columns: 1fr 1fr;
   }
