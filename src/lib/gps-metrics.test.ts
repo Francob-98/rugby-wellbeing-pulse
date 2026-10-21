@@ -1,6 +1,6 @@
 import { describe, test } from "node:test";
 import { strict as assert } from "node:assert";
-import { gpsMean } from "./gps-metrics";
+import { gpsMean, loadLight, rpeLight } from "./gps-metrics";
 
 describe("GPS recorded averages", () => {
   test("includes distances even when another metric needs review", () => {
@@ -12,4 +12,11 @@ describe("GPS recorded averages", () => {
   test("no available measurements returns null", () => {
     assert.equal(gpsMean([{ distance: null }], "distance"), null);
   });
+});
+describe("semáforo GPS", () => {
+  test("verde hasta ±15% del promedio", () => assert.equal(loadLight(1150, 1000), "verde"));
+  test("amarillo hasta ±30%", () => assert.equal(loadLight(750, 1000), "amarillo"));
+  test("rojo más allá de ±30%", () => assert.equal(loadLight(1400, 1000), "rojo"));
+  test("PSE 8 o más es rojo", () => assert.equal(rpeLight(8), "rojo"));
+  test("PSE 7 es amarillo", () => assert.equal(rpeLight(7), "amarillo"));
 });
