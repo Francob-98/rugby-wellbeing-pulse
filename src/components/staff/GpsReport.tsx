@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import { ClubBrand } from "@/components/ClubBrand";
 import type { GpsRow } from "@/lib/gps-extract.functions";
-import { gpsMean as mean, loadLight, rpeLight, type Light } from "@/lib/gps-metrics";
+import { gpsMean as mean } from "@/lib/gps-metrics";
 
 export type GpsReportEntry = GpsRow & { id: string; player_id: string | null; players: { full_name: string } | null };
 type Metric = { key: keyof GpsRow; title: string; unit: string; paint: string };
@@ -40,81 +40,6 @@ function Ranking({ entries, metric, isValid }: { entries: GpsReportEntry[]; metr
   </section>;
 }
 
-type Rpe = Record<string, { rpe: number; load: number | null }>;
-const lightPaint: Record<Light, string> = { verde: "var(--success)", amarillo: "var(--warning)", rojo: "var(--destructive)", "sin-dato": "var(--muted)" };
-const pct = (v: number | null | undefined, m: number | null) => v == null || !m ? "—" : `${v >= m ? "+" : ""}${Math.round((v / m - 1) * 100)}%`;
-
-function Dot({ light, label }: { light: Light; label: string }) {
-  return <div className="flex items-center gap-2"><svg viewBox="0 0 20 20" className="h-5 w-5 shrink-0" aria-hidden><circle cx="10" cy="10" r="9" fill={lightPaint[light]} stroke="var(--border)" /></svg><span className="text-sm tabular-nums">{label}</span></div>;
-}
-
-function side(l: Light, v: number | null | undefined, m: number | null, what: string) {
-  if (l !== "rojo" || v == null || m == null) return null;
-  return `${what} ${v > m ? "muy superior" : "muy inferior"} al grupo`;
-}
-
-function phrase(d: Light, i: Light, p: Light, e: GpsReportEntry, dm: number | null, im: number | null, rpe?: number) {
-  if (p === "rojo" && (d === "verde" || (e.distance_m ?? 0) < (dm ?? 0))) return "PSE alta con carga habitual o baja: seguimiento";
-  if (p === "rojo") return "Carga y PSE elevadas: controlar recuperación";
-  const parts = [side(d, e.distance_m, dm, "Carga"), side(i, e.m_per_min, im, "Intensidad")].filter(Boolean);
-  if (parts.length) return parts.join(" · ");
-  if (d === "amarillo" || i === "amarillo" || p === "amarillo") return "Observar";
-  if (rpe == null) return "Sin PSE informada";
-  return "Dentro de lo habitual";
-}
-
-function LightsTable({ entries, rpe }: { entries: GpsReportEntry[]; rpe: Rpe }) {
-  const dm = mean(entries, "distance_m"), im = mean(entries, "m_per_min");
-  const rows = entries.map(e => {
-    const r = e.player_id ? rpe[e.player_id]?.rpe : undefined;
-    const d = loadLight(e.distance_m, dm), i = loadLight(e.m_per_min, im), p = rpeLight(r);
-    const score = [d, i, p].reduce((s, l) => s + (l === "rojo" ? 3 : l === "amarillo" ? 1 : 0), 0);
-    return { e, r, d, i, p, score };
-  }).sort((a, b) => b.score - a.score);
-  return <section data-report-page className="border-t border-border bg-card px-5 py-6 sm:px-8">
-    <h3 className="font-display text-2xl font-bold uppercase">Semáforo por jugador</h3>
-    <p className="mb-4 mt-1 text-sm text-muted-foreground">Verde: dentro de ±15% del promedio del grupo · Amarillo: hasta ±30% · Rojo: más de ±30%. PSE: 7 amarillo, 8 o más rojo.</p>
-    <div className="grid grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,0.8fr))] gap-x-3 border-b border-border pb-2 text-xs font-semibold uppercase text-muted-foreground"><span>Jugador</span><span>Carga</span><span>Intensidad</span><span>PSE</span></div>
-    {rows.map(({ e, r, d, i, p }) => <div key={e.id} data-report-block className="border-b border-border py-2.5">
-      <div className="grid grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,0.8fr))] items-center gap-x-3">
-        <span className="min-w-0 break-words font-medium capitalize">{name(e)}</span>
-        <Dot light={d} label={pct(e.distance_m, dm)} /><Dot light={i} label={pct(e.m_per_min, im)} /><Dot light={p} label={r == null ? "—" : `${r}/10`} />
-      </div>
-      <p className="mt-1 text-sm text-muted-foreground">{phrase(d, i, p, e, dm, im, r)}</p>
-    </div>)}
-  </section>;
-}
-
-function LoadMatrix({ entries, rpe }: { entries: GpsReportEntry[]; rpe: Rpe }) {
-  const dm = mean(entries, "distance_m");
-  const pts = entries.flatMap(e => {
-    const r = e.player_id ? rpe[e.player_id]?.rpe : undefined;
-    return r != null && e.distance_m != null && dm ? [{ e, r, x: e.distance_m / dm }] : [];
-  });
-  const W = 800, H = 480, L = 50, B = 40, xMax = Math.max(1.6, ...pts.map(p => p.x)) ;
-  const X = (x: number) => L + (x / xMax) * (W - L - 10), Y = (r: number) => H - B - (r / 10) * (H - B - 10);
-  return <section data-report-page className="border-t border-border bg-card px-5 py-6 sm:px-8">
-    <h3 className="font-display text-2xl font-bold uppercase">Carga externa vs. PSE</h3>
-    <p className="mb-4 mt-1 text-sm text-muted-foreground">Arriba a la izquierda: poca carga y PSE alta (posible fatiga). Abajo a la derecha: mucha carga con PSE baja.</p>
-    {pts.length === 0 ? <p className="text-sm text-muted-foreground">No hay PSE informada para cruzar en esta fecha.</p> :
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Matriz de carga externa contra PSE">
-        <rect x={L} y={10} width={X(1) - L} height={Y(7) - 10} fill="var(--destructive)" fillOpacity="0.1" />
-        <rect x={X(1)} y={Y(4)} width={W - 10 - X(1)} height={H - B - Y(4)} fill="var(--warning)" fillOpacity="0.12" />
-        <line x1={X(1)} x2={X(1)} y1={10} y2={H - B} stroke="var(--muted-foreground)" strokeDasharray="6 6" />
-        <line x1={L} x2={W - 10} y1={Y(7)} y2={Y(7)} stroke="var(--muted-foreground)" strokeDasharray="6 6" />
-        <line x1={L} x2={W - 10} y1={H - B} y2={H - B} stroke="var(--border)" /><line x1={L} x2={L} y1={10} y2={H - B} stroke="var(--border)" />
-        {[0, 2, 4, 6, 8, 10].map(r => <text key={r} x={L - 10} y={Y(r) + 5} textAnchor="end" fontSize="14" fill="var(--muted-foreground)">{r}</text>)}
-        <text x={X(1)} y={H - 12} textAnchor="middle" fontSize="14" fill="var(--muted-foreground)">Promedio del grupo</text>
-        <text x={W - 10} y={H - 12} textAnchor="end" fontSize="14" fill="var(--muted-foreground)">Más distancia →</text>
-        <text x={L + 6} y={24} fontSize="14" fill="var(--muted-foreground)">PSE</text>
-        {pts.map(({ e, r, x }) => <g key={e.id}>
-          <circle cx={X(x)} cy={Y(r)} r="9" fill={lightPaint[rpeLight(r)]} stroke="var(--foreground)" strokeWidth="1.5" />
-          <text x={X(x) + 13} y={Y(r) + 5} fontSize="14" fill="var(--foreground)">{name(e).split(" ")[0]}</text>
-        </g>)}
-      </svg>}
-  </section>;
-}
-
 export const GpsReport = forwardRef<HTMLDivElement, {
   session: { session_date: string; team: string; session_type: string; description: string | null };
   entries: GpsReportEntry[];
@@ -133,8 +58,6 @@ export const GpsReport = forwardRef<HTMLDivElement, {
       </div>
       <p className="mt-5 text-sm text-muted-foreground">Promedios de los valores guardados disponibles; incluyen ceros y no reemplazan datos faltantes.{clean.length !== entries.length && " Barras amarillas: registros pendientes de revisión, incluidos en los promedios."}</p>
     </section>
-    <LightsTable entries={entries} rpe={rpe} />
-    <LoadMatrix entries={entries} rpe={rpe} />
     {metrics.map(metric => <Ranking key={metric.key} entries={entries} metric={metric} isValid={isValid} />)}
     <section data-report-page className="border-t border-border bg-card px-5 py-6 sm:px-8">
       <h3 className="mb-5 font-display text-2xl font-bold uppercase">Detalle por jugador</h3>
