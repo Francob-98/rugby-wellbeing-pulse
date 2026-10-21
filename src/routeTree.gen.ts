@@ -16,7 +16,6 @@ import { Route as PostEntrenoRouteImport } from './routes/post-entreno'
 import { Route as WellnessRouteImport } from './routes/wellness'
 import { Route as AuthenticatedAnalisisRouteImport } from './routes/_authenticated/analisis'
 import { Route as AuthenticatedDiferenciadosRouteImport } from './routes/_authenticated/diferenciados'
-import { Route as AuthenticatedGpsRouteImport } from './routes/_authenticated/gps'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
 import { Route as AuthenticatedPlantelRouteImport } from './routes/_authenticated/plantel'
 import { Route as AuthenticatedReportesRouteImport } from './routes/_authenticated/reportes'
@@ -59,11 +58,6 @@ const AuthenticatedDiferenciadosRoute =
     path: '/diferenciados',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedGpsRoute = AuthenticatedGpsRouteImport.update({
-  id: '/gps',
-  path: '/gps',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
   id: '/panel',
   path: '/panel',
@@ -104,7 +98,6 @@ export interface FileRoutesByFullPath {
   '/wellness': typeof WellnessRoute
   '/analisis': typeof AuthenticatedAnalisisRoute
   '/diferenciados': typeof AuthenticatedDiferenciadosRoute
-  '/gps': typeof AuthenticatedGpsRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/plantel': typeof AuthenticatedPlantelRoute
   '/reportes': typeof AuthenticatedReportesRoute
@@ -119,7 +112,6 @@ export interface FileRoutesByTo {
   '/wellness': typeof WellnessRoute
   '/analisis': typeof AuthenticatedAnalisisRoute
   '/diferenciados': typeof AuthenticatedDiferenciadosRoute
-  '/gps': typeof AuthenticatedGpsRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/plantel': typeof AuthenticatedPlantelRoute
   '/reportes': typeof AuthenticatedReportesRoute
@@ -136,7 +128,6 @@ export interface FileRoutesById {
   '/wellness': typeof WellnessRoute
   '/_authenticated/analisis': typeof AuthenticatedAnalisisRoute
   '/_authenticated/diferenciados': typeof AuthenticatedDiferenciadosRoute
-  '/_authenticated/gps': typeof AuthenticatedGpsRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/plantel': typeof AuthenticatedPlantelRoute
   '/_authenticated/reportes': typeof AuthenticatedReportesRoute
@@ -153,7 +144,6 @@ export interface FileRouteTypes {
     | '/wellness'
     | '/analisis'
     | '/diferenciados'
-    | '/gps'
     | '/panel'
     | '/plantel'
     | '/reportes'
@@ -168,7 +158,6 @@ export interface FileRouteTypes {
     | '/wellness'
     | '/analisis'
     | '/diferenciados'
-    | '/gps'
     | '/panel'
     | '/plantel'
     | '/reportes'
@@ -184,7 +173,6 @@ export interface FileRouteTypes {
     | '/wellness'
     | '/_authenticated/analisis'
     | '/_authenticated/diferenciados'
-    | '/_authenticated/gps'
     | '/_authenticated/panel'
     | '/_authenticated/plantel'
     | '/_authenticated/reportes'
@@ -252,13 +240,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDiferenciadosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/gps': {
-      id: '/_authenticated/gps'
-      path: '/gps'
-      fullPath: '/gps'
-      preLoaderRoute: typeof AuthenticatedGpsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/panel': {
       id: '/_authenticated/panel'
       path: '/panel'
@@ -307,7 +288,6 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnalisisRoute: typeof AuthenticatedAnalisisRoute
   AuthenticatedDiferenciadosRoute: typeof AuthenticatedDiferenciadosRoute
-  AuthenticatedGpsRoute: typeof AuthenticatedGpsRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedPlantelRoute: typeof AuthenticatedPlantelRoute
   AuthenticatedReportesRoute: typeof AuthenticatedReportesRoute
@@ -319,7 +299,6 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAnalisisRoute: AuthenticatedAnalisisRoute,
   AuthenticatedDiferenciadosRoute: AuthenticatedDiferenciadosRoute,
-  AuthenticatedGpsRoute: AuthenticatedGpsRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedPlantelRoute: AuthenticatedPlantelRoute,
   AuthenticatedReportesRoute: AuthenticatedReportesRoute,
