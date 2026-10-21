@@ -36,6 +36,13 @@
       "when": 1792594871811,
       "tag": "0004_gps_sessions",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792601606862,
+      "tag": "0005_gps_distance_targets",
+      "breakpoints": true
     }
   ]
 }
