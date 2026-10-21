@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import { ClubBrand } from "@/components/ClubBrand";
 import type { GpsRow } from "@/lib/gps-extract.functions";
+import { gpsMean as mean } from "@/lib/gps-metrics";
 
 export type GpsReportEntry = GpsRow & { id: string; player_id: string | null; players: { full_name: string } | null };
 type Metric = { key: keyof GpsRow; title: string; unit: string; paint: string };
@@ -16,10 +17,6 @@ const detailMetrics = [
 ] as const;
 const fmt = (n: number | null | undefined) => n == null ? "—" : n.toLocaleString("es-AR", { maximumFractionDigits: 1 });
 const name = (e: GpsReportEntry) => e.players?.full_name ?? e.gps_name;
-const mean = (entries: GpsReportEntry[], key: keyof GpsRow) => {
-  const values = entries.map(e => e[key]).filter((v): v is number => typeof v === "number" && Number.isFinite(v) && v > 0);
-  return values.length ? values.reduce((a, b) => a + b, 0) / values.length : null;
-};
 
 function Ranking({ entries, metric, isValid }: { entries: GpsReportEntry[]; metric: Metric; isValid: (e: GpsReportEntry) => boolean }) {
   const sorted = [...entries].sort((a, b) => Number(b[metric.key] ?? 0) - Number(a[metric.key] ?? 0));
@@ -27,7 +24,7 @@ function Ranking({ entries, metric, isValid }: { entries: GpsReportEntry[]; metr
   return <section data-report-page className="border-t border-border bg-card px-5 py-6 sm:px-8">
     <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
       <h3 className="font-display text-2xl font-bold uppercase">{metric.title}</h3>
-      <p className="text-sm text-muted-foreground">Promedio: <b className="text-foreground">{fmt(mean(entries.filter(isValid), metric.key))} {metric.unit}</b></p>
+      <p className="text-sm text-muted-foreground">Promedio: <b className="text-foreground">{fmt(mean(entries, metric.key))} {metric.unit}</b></p>
     </div>
     <div className="space-y-4">{sorted.map(e => {
       const value = e[metric.key];
@@ -57,9 +54,9 @@ export const GpsReport = forwardRef<HTMLDivElement, {
         <ClubBrand compact />
       </header>
       <div className="report-metrics grid grid-cols-2 gap-5 border-t border-border pt-5">
-        {[["Jugadores", entries.length, ""], ["Distancia media", mean(clean, "distance_m"), "m"], ["Ritmo medio", mean(clean, "m_per_min"), "m/min"], ["Alta velocidad media", mean(clean, "hsd_m"), "m"]].map(([label, value, unit]) => <div key={String(label)}><p className="text-sm text-muted-foreground">{label}</p><p className="mt-1 font-display text-3xl font-bold">{fmt(typeof value === "number" ? value : null)} <span className="text-sm font-normal">{unit}</span></p></div>)}
+        {[["Jugadores", entries.length, ""], ["Distancia media", mean(entries, "distance_m"), "m"], ["Ritmo medio", mean(entries, "m_per_min"), "m/min"], ["Alta velocidad media", mean(entries, "hsd_m"), "m"]].map(([label, value, unit]) => <div key={String(label)}><p className="text-sm text-muted-foreground">{label}</p><p className="mt-1 font-display text-3xl font-bold">{fmt(typeof value === "number" ? value : null)} <span className="text-sm font-normal">{unit}</span></p></div>)}
       </div>
-      {clean.length !== entries.length && <p className="mt-5 text-sm text-muted-foreground">Barras amarillas: registros con valores atípicos, excluidos de los promedios.</p>}
+      <p className="mt-5 text-sm text-muted-foreground">Promedios de los valores guardados disponibles; incluyen ceros y no reemplazan datos faltantes.{clean.length !== entries.length && " Barras amarillas: registros pendientes de revisión, incluidos en los promedios."}</p>
     </section>
     {metrics.map(metric => <Ranking key={metric.key} entries={entries} metric={metric} isValid={isValid} />)}
     <section data-report-page className="border-t border-border bg-card px-5 py-6 sm:px-8">

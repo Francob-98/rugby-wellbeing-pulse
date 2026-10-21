@@ -7,3 +7,5 @@
 - [x] Make PDF sections continuous; downloaded populated general and differentiated reports and visually inspected all five pages, with no missing or clipped content.
 - [x] Wellness Diferenciados asks only motivo + zona (no restriction); verified a real pre-entreno submit and the staff tab shows "—" for restriction/evolution.
 - [x] Improve GPS coach reports with readable charts and verify a populated local PDF export; inspected all five pages with 13 players.
+- [x] Compare GPS source, review table and saved report; correct average calculation and verify PDF values without inventing replacements for source anomalies.
+- [ ] Confirm source anomalies and player matching with staff before changing stored GPS values; original PDF contains long durations and extreme values, and three linked names differ from the source.

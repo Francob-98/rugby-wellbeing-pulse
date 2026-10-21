@@ -19,3 +19,4 @@
 - Flow PDF sections onto the current page with a shared vertical cursor and protect text lines, player rows and charts at page boundaries to avoid section-sized blank spaces without shrinking content.
 - GPS PDFs are read by the AI gateway into an editable review table before saving; staff confirm player matching so stored GPS history stays clean.
 - Render saved GPS coach reports in the shared GpsReport component with static SVG rankings and the existing local report exporter so screen and PDF preserve the same readable content.
+- Compute GPS report means through gpsMean from available recorded values, including zero; alerts on unrelated fields must not silently exclude a player's metric.
