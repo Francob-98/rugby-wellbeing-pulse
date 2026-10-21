@@ -33,15 +33,15 @@ export function useMyRoles() {
   });
 }
 
-export function useReportEntries(date: string) {
+export function useReportEntries(date: string, dateTo: string = date) {
   return useQuery({
-    queryKey: ["report-entries", date],
+    queryKey: ["report-entries", date, dateTo],
     queryFn: async () => {
       async function readAll(table: "wellness_entries" | "session_entries") {
         const entries = [];
         for (let offset = 0; ; offset += 500) {
-          const result = await supabase.from(table).select("*").eq("entry_date", date)
-            .order("created_at").order("id").range(offset, offset + 499);
+          const result = await supabase.from(table).select("*").gte("entry_date", date).lte("entry_date", dateTo)
+            .order("entry_date").order("created_at").order("id").range(offset, offset + 499);
           if (result.error) throw result.error;
           entries.push(...result.data);
           if (result.data.length < 500) return entries;

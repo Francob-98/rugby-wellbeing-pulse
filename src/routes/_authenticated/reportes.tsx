@@ -35,22 +35,25 @@ type ReportMode = "team" | "player";
 function ReportsPage() {
   const [mode, setMode] = useState<ReportMode>("team");
   const [date, setDate] = useState(today());
+  const [dateToRaw, setDateTo] = useState(today());
   const [team, setTeam] = useState("all");
   const [playerId, setPlayerId] = useState("");
   const [phase, setPhase] = useState("all");
   const [line, setLine] = useState("all");
   const [exporting, setExporting] = useState<"png" | "pdf" | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
+  const dateTo = mode === "player" && dateToRaw > date ? dateToRaw : date;
   const { data: players = [], isLoading: loadingPlayers } = usePlayers();
-  const { data, isLoading: loadingEntries } = useReportEntries(date);
+  const { data, isLoading: loadingEntries } = useReportEntries(date, dateTo);
+  const inRange = (d: string) => d >= date && d <= dateTo;
 
   const dayWellness = useMemo(
-    () => phase === "post" ? [] : (data?.wellness ?? []).filter((entry) => entry.entry_date === date && (line === "all" || entry.player_line === line)),
-    [data, date, phase, line],
+    () => phase === "post" ? [] : (data?.wellness ?? []).filter((entry) => inRange(entry.entry_date) && (line === "all" || entry.player_line === line)),
+    [data, date, dateTo, phase, line],
   );
   const daySessions = useMemo(
-    () => phase === "pre" ? [] : (data?.sessions ?? []).filter((entry) => entry.entry_date === date && (line === "all" || entry.player_line === line)),
-    [data, date, phase, line],
+    () => phase === "pre" ? [] : (data?.sessions ?? []).filter((entry) => inRange(entry.entry_date) && (line === "all" || entry.player_line === line)),
+    [data, date, dateTo, phase, line],
   );
   const selectedPlayer = players.find((player) => player.id === playerId);
 
@@ -60,7 +63,7 @@ function ReportsPage() {
     setExporting(format);
     try {
       const subject = mode === "team" ? (team === "all" ? "plantel" : team) : selectedPlayer?.full_name ?? "jugador";
-      await exportReport(node, format, `CBMM-${subject.replaceAll(" ", "-")}-${date}-${phase}${line === "all" ? "" : `-${line}`}`);
+      await exportReport(node, format, `CBMM-${subject.replaceAll(" ", "-")}-${date}${dateTo !== date ? `_a_${dateTo}` : ""}-${phase}${line === "all" ? "" : `-${line}`}`);
       toast.success(`${format.toUpperCase()} descargado`);
     } catch {
       toast.error("No se pudo crear el informe. Intentá nuevamente.");
@@ -112,9 +115,16 @@ function ReportsPage() {
           </Select>
           <label className="flex min-w-48 flex-1 items-center gap-2 rounded-md border border-input bg-background px-3">
             <CalendarDays className="size-4 text-muted-foreground" />
-            <span className="sr-only">Fecha del informe</span>
+            {mode === "player" ? <span className="text-xs text-muted-foreground">Desde</span> : <span className="sr-only">Fecha del informe</span>}
             <input type="date" value={date} max={today()} onChange={(event) => setDate(event.target.value)} className="h-10 w-full bg-transparent text-sm outline-none" />
           </label>
+          {mode === "player" && (
+            <label className="flex min-w-48 flex-1 items-center gap-2 rounded-md border border-input bg-background px-3">
+              <CalendarDays className="size-4 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Hasta</span>
+              <input type="date" value={dateTo} min={date} max={today()} onChange={(event) => setDateTo(event.target.value)} className="h-10 w-full bg-transparent text-sm outline-none" />
+            </label>
+          )}
           {mode === "team" ? (
             <Select value={team} onValueChange={setTeam}>
               <SelectTrigger className="min-w-52 flex-1 bg-background"><SelectValue /></SelectTrigger>
@@ -132,7 +142,7 @@ function ReportsPage() {
           <TeamReport ref={reportRef} date={date} team={team} phase={phase} players={players} wellness={dayWellness} sessions={daySessions} loading={loading} />
         </TabsContent>
         <TabsContent value="player">
-          <PlayerReport ref={reportRef} date={date} player={selectedPlayer} wellness={dayWellness} sessions={daySessions} loading={loading} />
+          <PlayerReport ref={reportRef} date={date} dateTo={dateTo} player={selectedPlayer} wellness={dayWellness} sessions={daySessions} loading={loading} />
         </TabsContent>
       </Tabs>
     </div>
@@ -253,9 +263,10 @@ const TeamReport = function TeamReport({ ref, date, team, phase, players, wellne
   );
 };
 
-const PlayerReport = function PlayerReport({ ref, date, player, wellness, sessions, loading }: {
+const PlayerReport = function PlayerReport({ ref, date, dateTo, player, wellness, sessions, loading }: {
   ref: Ref<HTMLDivElement>;
   date: string;
+  dateTo: string;
   player: Player | undefined;
   wellness: WellnessEntry[];
   sessions: SessionEntry[];
@@ -267,12 +278,12 @@ const PlayerReport = function PlayerReport({ ref, date, player, wellness, sessio
   const allEntries = [
     ...playerWellness.map((entry) => ({ kind: "pre" as const, entry })),
     ...playerSessions.map((entry) => ({ kind: "post" as const, entry })),
-  ];
+  ].sort((a, b) => a.entry.entry_date.localeCompare(b.entry.entry_date) || (a.kind === b.kind ? a.entry.created_at.localeCompare(b.entry.created_at) : a.kind === "pre" ? -1 : 1));
   return (
     <div ref={ref} className="report-sheet mx-auto mt-4 w-full max-w-[920px] bg-card text-card-foreground">
       {loading ? <p className="p-12">Cargando datos…</p> : allEntries.length ? allEntries.map((item, index) => (
         <div key={item.entry.id} data-report-page className="bg-card p-6 sm:p-8">
-          <ReportHeader title={player.full_name} date={date} eyebrow={`${player.team} · Respuesta ${index + 1} de ${allEntries.length}`} />
+          <ReportHeader title={player.full_name} date={item.entry.entry_date} eyebrow={`${player.team} · Respuesta ${index + 1} de ${allEntries.length}${dateTo !== date ? ` · Período ${format(parseISO(date), "dd/MM/yyyy")} al ${format(parseISO(dateTo), "dd/MM/yyyy")}` : ""}`} />
           <h3 className="mt-6 font-display text-2xl font-bold uppercase text-primary">{item.kind === "pre" ? "Pre-entreno · Wellness" : "Post-entreno"}</h3>
           <p className="mt-1 text-sm text-muted-foreground">Registrada: {format(parseISO(item.entry.created_at), "dd/MM/yyyy HH:mm")}</p>
           {item.kind === "pre" ? (
