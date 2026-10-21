@@ -13,3 +13,11 @@ describe("GPS recorded averages", () => {
     assert.equal(gpsMean([{ distance: null }], "distance"), null);
   });
 });
+import { loadLight, rpeLight } from "./gps-metrics";
+describe("semáforo GPS", () => {
+  it("verde hasta ±15% del promedio", () => expect(loadLight(1150, 1000)).toBe("verde"));
+  it("amarillo hasta ±30%", () => expect(loadLight(750, 1000)).toBe("amarillo"));
+  it("rojo más allá de ±30%", () => expect(loadLight(1400, 1000)).toBe("rojo"));
+  it("PSE 8 o más es rojo", () => expect(rpeLight(8)).toBe("rojo"));
+  it("PSE 7 es amarillo", () => expect(rpeLight(7)).toBe("amarillo"));
+});
