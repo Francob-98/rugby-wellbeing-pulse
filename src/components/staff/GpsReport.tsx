@@ -42,17 +42,22 @@ function Ranking({ entries, metric, isValid }: { entries: GpsReportEntry[]; metr
 
 type Rpe = Record<string, { rpe: number; load: number | null }>;
 const lightPaint: Record<Light, string> = { verde: "var(--success)", amarillo: "var(--warning)", rojo: "var(--destructive)", "sin-dato": "var(--muted)" };
-const pct = (v: number | null | undefined, m: number | null) => v == null || !m ? "" : `${v >= m ? "+" : ""}${Math.round((v / m - 1) * 100)}%`;
+const pct = (v: number | null | undefined, m: number | null) => v == null || !m ? "—" : `${v >= m ? "+" : ""}${Math.round((v / m - 1) * 100)}%`;
 
 function Dot({ light, label }: { light: Light; label: string }) {
   return <div className="flex items-center gap-2"><svg viewBox="0 0 20 20" className="h-5 w-5 shrink-0" aria-hidden><circle cx="10" cy="10" r="9" fill={lightPaint[light]} stroke="var(--border)" /></svg><span className="text-sm tabular-nums">{label}</span></div>;
 }
 
-function phrase(d: Light, i: Light, p: Light, dist: number | null | undefined, dm: number | null, rpe?: number) {
-  if (p === "rojo" && (d === "verde" || (dist ?? 0) < (dm ?? 0))) return "PSE alta con carga habitual o baja: seguimiento";
+function side(l: Light, v: number | null | undefined, m: number | null, what: string) {
+  if (l !== "rojo" || v == null || m == null) return null;
+  return `${what} ${v > m ? "muy superior" : "muy inferior"} al grupo`;
+}
+
+function phrase(d: Light, i: Light, p: Light, e: GpsReportEntry, dm: number | null, im: number | null, rpe?: number) {
+  if (p === "rojo" && (d === "verde" || (e.distance_m ?? 0) < (dm ?? 0))) return "PSE alta con carga habitual o baja: seguimiento";
   if (p === "rojo") return "Carga y PSE elevadas: controlar recuperación";
-  if (d === "rojo" && (dist ?? 0) > (dm ?? 0)) return "Carga muy superior al grupo";
-  if (d === "rojo" || i === "rojo") return "Carga o intensidad muy por debajo del grupo";
+  const parts = [side(d, e.distance_m, dm, "Carga"), side(i, e.m_per_min, im, "Intensidad")].filter(Boolean);
+  if (parts.length) return parts.join(" · ");
   if (d === "amarillo" || i === "amarillo" || p === "amarillo") return "Observar";
   if (rpe == null) return "Sin PSE informada";
   return "Dentro de lo habitual";
@@ -75,7 +80,7 @@ function LightsTable({ entries, rpe }: { entries: GpsReportEntry[]; rpe: Rpe }) 
         <span className="min-w-0 break-words font-medium capitalize">{name(e)}</span>
         <Dot light={d} label={pct(e.distance_m, dm)} /><Dot light={i} label={pct(e.m_per_min, im)} /><Dot light={p} label={r == null ? "—" : `${r}/10`} />
       </div>
-      <p className="mt-1 text-sm text-muted-foreground">{phrase(d, i, p, e.distance_m, dm, r)}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{phrase(d, i, p, e, dm, im, r)}</p>
     </div>)}
   </section>;
 }
