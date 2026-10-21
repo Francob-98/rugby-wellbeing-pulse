@@ -10,3 +10,4 @@
 - [x] Compare GPS source, review table and saved report; correct average calculation and verify PDF values without inventing replacements for source anomalies.
 - [x] Remove the GPS traffic-light table and external-load vs PSE matrix from the GPS report; verified the downloaded PDF has 5 pages with the three rankings and per-player detail only.
 - [ ] Confirm source anomalies and player matching with staff before changing stored GPS values; original PDF contains long durations and extreme values, and three linked names differ from the source.
+- [x] Unify the three GPS rankings into one per-player comparison; verified the real 13-player session on screen and downloaded PDF, with unchanged averages and no narrow-screen overflow.
