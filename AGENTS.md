@@ -18,3 +18,4 @@
 - Set report SVG paint through explicit semantic-token fill/stroke attributes, since class-based SVG paint can disappear in local image exports; paginate oversized PDF sections at full readable width rather than shrinking entire sections.
 - Flow PDF sections onto the current page with a shared vertical cursor and protect text lines, player rows and charts at page boundaries to avoid section-sized blank spaces without shrinking content.
 - GPS PDFs are read by the AI gateway into an editable review table before saving; staff confirm player matching so stored GPS history stays clean.
+- Render saved GPS coach reports in the shared GpsReport component with static SVG rankings and the existing local report exporter so screen and PDF preserve the same readable content.
