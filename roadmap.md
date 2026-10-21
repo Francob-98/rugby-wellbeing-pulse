@@ -6,4 +6,4 @@
 - [x] Verify populated PNG/PDF exports and phase filtering on desktop and narrow screens.- [x] Módulo Seguimiento Diferenciado (formularios, vista staff, PNG/PDF).
 - [x] Make PDF sections continuous; downloaded populated general and differentiated reports and visually inspected all five pages, with no missing or clipped content.
 - [x] Wellness Diferenciados asks only motivo + zona (no restriction); verified a real pre-entreno submit and the staff tab shows "—" for restriction/evolution.
-- [ ] Improve GPS coach reports with readable charts and verify a populated local PDF export.
+- [x] Improve GPS coach reports with readable charts and verify a populated local PDF export; inspected all five pages with 13 players.
