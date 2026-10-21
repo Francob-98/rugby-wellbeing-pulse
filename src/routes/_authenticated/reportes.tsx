@@ -35,22 +35,25 @@ type ReportMode = "team" | "player";
 function ReportsPage() {
   const [mode, setMode] = useState<ReportMode>("team");
   const [date, setDate] = useState(today());
+  const [dateToRaw, setDateTo] = useState(today());
   const [team, setTeam] = useState("all");
   const [playerId, setPlayerId] = useState("");
   const [phase, setPhase] = useState("all");
   const [line, setLine] = useState("all");
   const [exporting, setExporting] = useState<"png" | "pdf" | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
+  const dateTo = mode === "player" && dateToRaw > date ? dateToRaw : date;
   const { data: players = [], isLoading: loadingPlayers } = usePlayers();
-  const { data, isLoading: loadingEntries } = useReportEntries(date);
+  const { data, isLoading: loadingEntries } = useReportEntries(date, dateTo);
+  const inRange = (d: string) => d >= date && d <= dateTo;
 
   const dayWellness = useMemo(
-    () => phase === "post" ? [] : (data?.wellness ?? []).filter((entry) => entry.entry_date === date && (line === "all" || entry.player_line === line)),
-    [data, date, phase, line],
+    () => phase === "post" ? [] : (data?.wellness ?? []).filter((entry) => inRange(entry.entry_date) && (line === "all" || entry.player_line === line)),
+    [data, date, dateTo, phase, line],
   );
   const daySessions = useMemo(
-    () => phase === "pre" ? [] : (data?.sessions ?? []).filter((entry) => entry.entry_date === date && (line === "all" || entry.player_line === line)),
-    [data, date, phase, line],
+    () => phase === "pre" ? [] : (data?.sessions ?? []).filter((entry) => inRange(entry.entry_date) && (line === "all" || entry.player_line === line)),
+    [data, date, dateTo, phase, line],
   );
   const selectedPlayer = players.find((player) => player.id === playerId);
 
