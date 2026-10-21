@@ -148,6 +148,42 @@ function PlayerPage() {
             </Panel>
           </div>
 
+          <Panel title={`Sesiones guardadas (${v.sR.length})`}>
+            {v.sR.length ? (
+              <>
+                <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <Kpi label="Sesiones" value={v.sR.length} />
+                  <Kpi label="Minutos totales" value={v.sR.reduce((a, b) => a + b.duration_min, 0)} />
+                  <Kpi label="PSE promedio" value={(v.sR.reduce((a, b) => a + b.rpe, 0) / v.sR.length).toFixed(1)} />
+                  <Kpi label="Carga total" value={v.sR.reduce((a, b) => a + b.load, 0)} sub="UA" />
+                </div>
+                <div className="max-h-[420px] overflow-auto">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 bg-card text-left text-xs uppercase tracking-wider text-muted-foreground">
+                      <tr><th className="py-2">Fecha</th><th>Equipo</th><th>Tipo</th><th className="text-right">Min</th><th className="text-right">PSE</th><th className="text-right">Carga</th><th className="pl-3">Evolución</th></tr>
+                    </thead>
+                    <tbody>
+                      {(() => {
+                        const max = Math.max(...v.sR.map((x) => x.load), 1);
+                        return [...v.sR].reverse().map((s) => (
+                          <tr key={s.id} className="border-t border-border">
+                            <td className="py-2">{format(parseISO(s.entry_date), "dd/MM/yy")}</td>
+                            <td>{s.team}</td>
+                            <td>{s.session_type ?? "Entrenamiento"}</td>
+                            <td className="text-right">{s.duration_min}</td>
+                            <td className={`text-right font-semibold ${s.rpe >= 8 ? "text-destructive" : ""}`}>{s.rpe}</td>
+                            <td className="text-right font-semibold">{s.load}</td>
+                            <td className="w-1/4 pl-3"><div className="h-2 rounded-full bg-muted"><div className="h-2 rounded-full bg-primary" style={{ width: `${(s.load / max) * 100}%` }} /></div></td>
+                          </tr>
+                        ));
+                      })()}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            ) : <p className="text-sm text-muted-foreground">Sin sesiones en este período.</p>}
+          </Panel>
+
           <div className="grid gap-4 lg:grid-cols-3">
             <Panel title="Dolor último registro">
               <BodyMap value={v.lastPain} />
