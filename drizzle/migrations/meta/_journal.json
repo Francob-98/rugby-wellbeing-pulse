@@ -29,6 +29,13 @@
       "when": 1792162462374,
       "tag": "0003_differentiated_evolution_allow_blank",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792594871811,
+      "tag": "0004_gps_sessions",
+      "breakpoints": true
     }
   ]
 }
