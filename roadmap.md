@@ -6,9 +6,5 @@
 - [x] Verify populated PNG/PDF exports and phase filtering on desktop and narrow screens.- [x] Módulo Seguimiento Diferenciado (formularios, vista staff, PNG/PDF).
 - [x] Make PDF sections continuous; downloaded populated general and differentiated reports and visually inspected all five pages, with no missing or clipped content.
 - [x] Wellness Diferenciados asks only motivo + zona (no restriction); verified a real pre-entreno submit and the staff tab shows "—" for restriction/evolution.
-- [x] Improve GPS coach reports with readable charts and verify a populated local PDF export; inspected all five pages with 13 players.
-- [x] Compare GPS source, review table and saved report; correct average calculation and verify PDF values without inventing replacements for source anomalies.
-- [x] Remove the GPS traffic-light table and external-load vs PSE matrix from the GPS report; verified the downloaded PDF has 5 pages with the three rankings and per-player detail only.
-- [ ] Confirm source anomalies and player matching with staff before changing stored GPS values; original PDF contains long durations and extreme values, and three linked names differ from the source.
-- [x] Unify the three GPS rankings into one per-player comparison; verified the real 13-player session on screen and downloaded PDF, with unchanged averages and no narrow-screen overflow.
-- [x] Add editable GPS distance references by line/activity, session overrides and per-player target percentages; verified save/reload and real PDF (4,943 / 5,000 = 98.9%), then restored all temporary test settings.
+- [x] Remove the GPS module entirely at the user's request (route, nav tab, report components, metrics and PDF extraction); database tables kept untouched.
+
