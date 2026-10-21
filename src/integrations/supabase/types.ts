@@ -67,6 +67,114 @@ export type Database = {
           },
         ]
       }
+      gps_entries: {
+        Row: {
+          accel_decel: number | null
+          accel_decel_per_min: number | null
+          created_at: string
+          distance_m: number | null
+          duration_min: number | null
+          gps_name: string
+          hsd_m: number | null
+          hsd_per_min: number | null
+          id: string
+          m_per_min: number | null
+          max_accel: number | null
+          max_decel: number | null
+          max_speed: number | null
+          player_id: string | null
+          position: string | null
+          session_id: string
+          sprint_per_min: number | null
+        }
+        Insert: {
+          accel_decel?: number | null
+          accel_decel_per_min?: number | null
+          created_at?: string
+          distance_m?: number | null
+          duration_min?: number | null
+          gps_name: string
+          hsd_m?: number | null
+          hsd_per_min?: number | null
+          id?: string
+          m_per_min?: number | null
+          max_accel?: number | null
+          max_decel?: number | null
+          max_speed?: number | null
+          player_id?: string | null
+          position?: string | null
+          session_id: string
+          sprint_per_min?: number | null
+        }
+        Update: {
+          accel_decel?: number | null
+          accel_decel_per_min?: number | null
+          created_at?: string
+          distance_m?: number | null
+          duration_min?: number | null
+          gps_name?: string
+          hsd_m?: number | null
+          hsd_per_min?: number | null
+          id?: string
+          m_per_min?: number | null
+          max_accel?: number | null
+          max_decel?: number | null
+          max_speed?: number | null
+          player_id?: string | null
+          position?: string | null
+          session_id?: string
+          sprint_per_min?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gps_entries_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gps_entries_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "gps_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gps_sessions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          session_date: string
+          session_type: string
+          source_file: string | null
+          team: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          session_date?: string
+          session_type?: string
+          source_file?: string | null
+          team?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          session_date?: string
+          session_type?: string
+          source_file?: string | null
+          team?: string
+        }
+        Relationships: []
+      }
       players: {
         Row: {
           active: boolean
