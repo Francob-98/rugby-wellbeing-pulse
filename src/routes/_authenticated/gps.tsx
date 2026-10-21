@@ -230,74 +230,32 @@ function SessionDetail({ s }: { s: Sess }) {
       return m;
     },
   });
-  const [metric, setMetric] = useState<keyof GpsRow>("distance_m");
+  const reportRef = useRef<HTMLDivElement>(null);
+  const [exporting, setExporting] = useState(false);
   const valid = (e: Entry) => warnings(e).length === 0;
-  const avg = (k: keyof GpsRow) => {
-    const xs = entries.filter(valid).map((e) => Number(e[k])).filter((x) => Number.isFinite(x) && x > 0);
-    return xs.length ? Math.round((xs.reduce((a, b) => a + b, 0) / xs.length) * 10) / 10 : "—";
+  const download = async () => {
+    if (!reportRef.current) return;
+    setExporting(true);
+    try {
+      await exportReport(reportRef.current, "pdf", `CBMM-GPS-${s.session_date}-${s.team.replaceAll(" ", "-")}`);
+      toast.success("PDF descargado");
+    } catch {
+      toast.error("No se pudo crear el PDF. Intentá nuevamente.");
+    } finally {
+      setExporting(false);
+    }
   };
-  const sorted = useMemo(() => [...entries].sort((a, b) => Number(b[metric] ?? 0) - Number(a[metric] ?? 0)), [entries, metric]);
-  const max = Math.max(1, ...entries.filter(valid).map((e) => Number(e[metric] ?? 0)));
-  const label = NUMS.find((n) => n.k === metric)?.label ?? "";
-  const name = (e: Entry) => e.players?.full_name ?? e.gps_name;
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-4">
-        <Kpi label="Jugadores" value={entries.length} />
-        <Kpi label="Distancia media (m)" value={avg("distance_m")} />
-        <Kpi label="m/min medio" value={avg("m_per_min")} />
-        <Kpi label="Alta velocidad media (m)" value={avg("hsd_m")} />
+    <div className="min-w-0 space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-display text-2xl font-bold uppercase">Informe para entrenadores</h2>
+        <Button onClick={download} disabled={exporting || !entries.length}>
+          {exporting ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />}
+          {exporting ? "Creando PDF…" : "Descargar PDF"}
+        </Button>
       </div>
-
-      <Panel title={`Ranking · ${label}`} action={
-        <Select value={metric} onValueChange={(v) => setMetric(v as keyof GpsRow)}>
-          <SelectTrigger className="h-8 w-40"><SelectValue /></SelectTrigger>
-          <SelectContent>{NUMS.map((n) => <SelectItem key={n.k} value={n.k}>{n.label}</SelectItem>)}</SelectContent>
-        </Select>}>
-        <div className="space-y-1.5">
-          {sorted.map((e) => {
-            const v = Number(e[metric] ?? 0);
-            const odd = !valid(e);
-            return (
-              <div key={e.id} className="grid grid-cols-[150px_1fr_60px] items-center gap-2 text-sm">
-                <span className="truncate">{name(e)}</span>
-                <div className="h-3 rounded bg-muted"><div className={`h-3 rounded ${odd ? "bg-warning" : "bg-primary"}`} style={{ width: `${Math.min(100, (v / max) * 100)}%` }} /></div>
-                <span className="text-right tabular-nums">{v || "—"}</span>
-              </div>
-            );
-          })}
-        </div>
-        {entries.some((e) => !valid(e)) && <p className="mt-2 text-xs text-muted-foreground">En amarillo: valores atípicos, excluidos de los promedios.</p>}
-      </Panel>
-
-      <Panel title="Carga externa vs. percepción (PSE del mismo día)">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader><TableRow><TableHead>Jugador</TableHead><TableHead>Dist. (m)</TableHead><TableHead>m/min</TableHead><TableHead>Alta vel.</TableHead><TableHead>PSE</TableHead><TableHead>Carga</TableHead><TableHead>Lectura</TableHead></TableRow></TableHeader>
-            <TableBody>
-              {sorted.map((e) => {
-                const r = e.player_id ? rpe[e.player_id] : undefined;
-                const d = Number(e.distance_m ?? 0); const da = Number(avg("distance_m")) || 0;
-                let note = "—";
-                if (r && da) {
-                  if (r.rpe >= 8 && d < da * 0.8) note = "PSE alto con poco volumen: revisar";
-                  else if (r.rpe <= 4 && d > da * 1.2) note = "Mucho volumen, baja percepción";
-                  else note = "Acorde";
-                }
-                return (
-                  <TableRow key={e.id}>
-                    <TableCell>{name(e)}{!e.player_id && <span className="ml-1 text-xs text-muted-foreground">(sin vincular)</span>}</TableCell>
-                    <TableCell>{e.distance_m ?? "—"}</TableCell><TableCell>{e.m_per_min ?? "—"}</TableCell><TableCell>{e.hsd_m ?? "—"}</TableCell>
-                    <TableCell>{r?.rpe ?? "—"}</TableCell><TableCell>{r?.load ?? "—"}</TableCell>
-                    <TableCell className={note.includes("revisar") ? "text-destructive" : "text-muted-foreground"}>{note}</TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      </Panel>
+      {entries.length ? <GpsReport ref={reportRef} session={s} entries={entries} rpe={rpe} isValid={valid} /> : <p className="text-sm text-muted-foreground">Sin registros GPS disponibles.</p>}
     </div>
   );
 }
