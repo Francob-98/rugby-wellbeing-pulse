@@ -1,6 +1,6 @@
 import { describe, test } from "node:test";
 import { strict as assert } from "node:assert";
-import { gpsMean } from "./gps-metrics";
+import { gpsMean, loadLight, rpeLight } from "./gps-metrics";
 
 describe("GPS recorded averages", () => {
   test("includes distances even when another metric needs review", () => {
@@ -13,11 +13,10 @@ describe("GPS recorded averages", () => {
     assert.equal(gpsMean([{ distance: null }], "distance"), null);
   });
 });
-import { loadLight, rpeLight } from "./gps-metrics";
 describe("semáforo GPS", () => {
-  it("verde hasta ±15% del promedio", () => expect(loadLight(1150, 1000)).toBe("verde"));
-  it("amarillo hasta ±30%", () => expect(loadLight(750, 1000)).toBe("amarillo"));
-  it("rojo más allá de ±30%", () => expect(loadLight(1400, 1000)).toBe("rojo"));
-  it("PSE 8 o más es rojo", () => expect(rpeLight(8)).toBe("rojo"));
-  it("PSE 7 es amarillo", () => expect(rpeLight(7)).toBe("amarillo"));
+  test("verde hasta ±15% del promedio", () => assert.equal(loadLight(1150, 1000), "verde"));
+  test("amarillo hasta ±30%", () => assert.equal(loadLight(750, 1000), "amarillo"));
+  test("rojo más allá de ±30%", () => assert.equal(loadLight(1400, 1000), "rojo"));
+  test("PSE 8 o más es rojo", () => assert.equal(rpeLight(8), "rojo"));
+  test("PSE 7 es amarillo", () => assert.equal(rpeLight(7), "amarillo"));
 });
