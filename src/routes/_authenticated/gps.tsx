@@ -10,6 +10,8 @@ import { TEAMS, SESSION_TYPES } from "@/lib/constants";
 import { extractGpsPdf, type GpsRow } from "@/lib/gps-extract.functions";
 import { Panel } from "@/components/staff/Widgets";
 import { GpsReport } from "@/components/staff/GpsReport";
+import { GpsBaseReferences, GpsSessionReferences, useGpsReferences, referenceTargets } from "@/components/staff/GpsReferences";
+import { gpsTarget, type GpsTargets } from "@/lib/gps-metrics";
 import { exportReport } from "@/lib/report-export";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +32,7 @@ export const Route = createFileRoute("/_authenticated/gps")({
   component: GpsPage,
 });
 
-type Row = GpsRow & { player_id: string | null };
+type Row = GpsRow & { player_id: string | null; player_line?: string | null };
 const NUMS: { k: keyof GpsRow; label: string }[] = [
   { k: "distance_m", label: "Dist. (m)" }, { k: "m_per_min", label: "m/min" }, { k: "hsd_m", label: "Alta vel. (m)" },
   { k: "sprint_per_min", label: "Sprint/min" }, { k: "accel_decel", label: "Acel+desac" }, { k: "max_speed", label: "Vel. máx" },
@@ -164,20 +166,21 @@ function GpsPage() {
         </Panel>
       )}
 
+      <GpsBaseReferences />
       <History selected={selected} onSelect={setSelected} />
     </div>
   );
 }
 
-type Sess = { id: string; session_date: string; team: string; session_type: string; description: string | null };
-type Entry = GpsRow & { id: string; player_id: string | null; players: { full_name: string } | null };
+type Sess = { id: string; session_date: string; team: string; session_type: string; description: string | null; backs_target_m: number | null; forwards_target_m: number | null };
+type Entry = GpsRow & { id: string; player_id: string | null; player_line?: string | null; players: { full_name: string } | null };
 
 function History({ selected, onSelect }: { selected: string | null; onSelect: (id: string) => void }) {
   const qc = useQueryClient();
   const { data: sessions = [] } = useQuery({
     queryKey: ["gps", "sessions"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("gps_sessions").select("id,session_date,team,session_type,description").order("session_date", { ascending: false }).limit(200);
+      const { data, error } = await supabase.from("gps_sessions").select("id,session_date,team,session_type,description,backs_target_m,forwards_target_m").order("session_date", { ascending: false }).limit(200);
       if (error) throw error;
       return data as Sess[];
     },
@@ -211,6 +214,10 @@ function History({ selected, onSelect }: { selected: string | null; onSelect: (i
 }
 
 function SessionDetail({ s }: { s: Sess }) {
+  const qc = useQueryClient();
+  const { data: references = [], isPending: referencesPending, isError: referencesError } = useGpsReferences();
+  const base = referenceTargets(references, s.session_type);
+  const targets: GpsTargets = { Backs: gpsTarget("Backs", base, { Backs: s.backs_target_m }), Forwards: gpsTarget("Forwards", base, { Forwards: s.forwards_target_m }) };
   const { data: entries = [] } = useQuery({
     queryKey: ["gps", "entries", s.id],
     queryFn: async () => {
@@ -220,6 +227,10 @@ function SessionDetail({ s }: { s: Sess }) {
     },
   });
   const ids = entries.map((e) => e.player_id).filter(Boolean) as string[];
+  const assignLine = useMutation({ mutationFn: async ({ id, line }: { id: string; line: string | null }) => {
+    const { error } = await supabase.from("gps_entries").update({ player_line: line }).eq("id", id).eq("session_id", s.id);
+    if (error) throw error;
+  }, onSuccess: () => qc.invalidateQueries({ queryKey: ["gps", "entries", s.id] }), onError: () => toast.error("No se pudo guardar la línea.") });
   const { data: rpe = {} } = useQuery({
     queryKey: ["gps", "rpe", s.id, ids.join()],
     enabled: ids.length > 0,
@@ -250,12 +261,17 @@ function SessionDetail({ s }: { s: Sess }) {
     <div className="min-w-0 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-display text-2xl font-bold uppercase">Informe para entrenadores</h2>
-        <Button onClick={download} disabled={exporting || !entries.length}>
+        <Button onClick={download} disabled={exporting || !entries.length || referencesPending || referencesError}>
           {exporting ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />}
           {exporting ? "Creando PDF…" : "Descargar PDF"}
         </Button>
       </div>
-      {entries.length ? <GpsReport ref={reportRef} session={s} entries={entries} rpe={rpe} isValid={valid} /> : <p className="text-sm text-muted-foreground">Sin registros GPS disponibles.</p>}
+      <GpsSessionReferences session={s} base={base} />
+      <section className="space-y-3 border-t border-border pt-4"><h3 className="font-display text-xl font-bold uppercase">Línea por jugador · esta sesión</h3>
+        <div className="grid gap-3 sm:grid-cols-2">{entries.map(entry => <label key={entry.id} className="min-w-0 text-sm"><span className="block break-words capitalize">{entry.players?.full_name ?? entry.gps_name}</span><Select disabled={assignLine.isPending} value={entry.player_line ?? "none"} onValueChange={line => assignLine.mutate({ id: entry.id, line: line === "none" ? null : line })}><SelectTrigger aria-label={`Línea GPS ${entry.players?.full_name ?? entry.gps_name}`}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="none">Sin confirmar</SelectItem><SelectItem value="Backs">Backs</SelectItem><SelectItem value="Forwards">Forwards</SelectItem></SelectContent></Select></label>)}</div>
+      </section>
+      {referencesError && <p className="text-sm text-destructive">No se pudieron cargar los objetivos. Intentá nuevamente.</p>}
+      {entries.length ? <GpsReport ref={reportRef} session={s} entries={entries} rpe={rpe} isValid={valid} targets={targets} /> : <p className="text-sm text-muted-foreground">Sin registros GPS disponibles.</p>}
     </div>
   );
 }

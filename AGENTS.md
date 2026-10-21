@@ -20,3 +20,4 @@
 - GPS PDFs are read by the AI gateway into an editable review table before saving; staff confirm player matching so stored GPS history stays clean.
 - Render saved GPS coach reports in the shared GpsReport component with one consolidated per-player comparison, independently scaled static SVG metric columns and the existing local report exporter so screen and PDF preserve the same readable content.
 - Compute GPS report means through gpsMean from available recorded values, including zero; alerts on unrelated fields must not silently exclude a player's metric.
+- Store shared GPS distance references by line/activity with nullable per-session overrides; use explicitly staff-confirmed per-session GPS lines and pure gpsTarget/gpsTargetPercent calculations, never infer line or risk from distance.

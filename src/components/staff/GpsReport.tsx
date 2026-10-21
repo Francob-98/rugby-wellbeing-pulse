@@ -1,9 +1,9 @@
 import { forwardRef } from "react";
 import { ClubBrand } from "@/components/ClubBrand";
 import type { GpsRow } from "@/lib/gps-extract.functions";
-import { gpsMean as mean } from "@/lib/gps-metrics";
+import { gpsMean as mean, gpsTarget, gpsTargetPercent, type GpsTargets } from "@/lib/gps-metrics";
 
-export type GpsReportEntry = GpsRow & { id: string; player_id: string | null; players: { full_name: string } | null };
+export type GpsReportEntry = GpsRow & { id: string; player_id: string | null; player_line?: string | null; players: { full_name: string } | null };
 type Metric = { key: keyof GpsRow; title: string; unit: string; paint: string };
 const metrics: Metric[] = [
   { key: "distance_m", title: "Distancia recorrida", unit: "m", paint: "var(--primary)" },
@@ -18,7 +18,7 @@ const detailMetrics = [
 const fmt = (n: number | null | undefined) => n == null ? "—" : n.toLocaleString("es-AR", { maximumFractionDigits: 1 });
 const name = (e: GpsReportEntry) => e.players?.full_name ?? e.gps_name;
 
-function SessionComparison({ entries, isValid }: { entries: GpsReportEntry[]; isValid: (e: GpsReportEntry) => boolean }) {
+function SessionComparison({ entries, isValid, targets }: { entries: GpsReportEntry[]; isValid: (e: GpsReportEntry) => boolean; targets: GpsTargets }) {
   const sorted = [...entries].sort((a, b) => name(a).localeCompare(name(b), "es"));
   const maxima = metrics.map(metric => Math.max(1, ...entries.map(e => {
     const value = e[metric.key];
@@ -31,21 +31,24 @@ function SessionComparison({ entries, isValid }: { entries: GpsReportEntry[]; is
       {metrics.map(metric => <span key={metric.key} className="px-2 text-sm font-semibold">{metric.title}<span className="block font-normal text-muted-foreground">{metric.unit}</span></span>)}
     </div>
     <div>{sorted.map(e => <div key={e.id} data-report-block className="gps-comparison-grid gap-y-3 border-b border-border py-4">
-      <div className="gps-comparison-name min-w-0 px-2"><h4 className="break-words text-base font-semibold capitalize">{name(e)}</h4>{!isValid(e) && <p className="mt-1 text-xs text-warning">Pendiente de revisión</p>}</div>
+      <div className="gps-comparison-name min-w-0 px-2"><h4 className="break-words text-base font-semibold capitalize">{name(e)}</h4><p className="text-xs text-muted-foreground">{e.player_line ?? "Línea sin confirmar"}</p>{!isValid(e) && <p className="mt-1 text-xs text-warning">Pendiente de revisión</p>}</div>
       {metrics.map((metric, index) => {
         const value = e[metric.key];
         const number = typeof value === "number" && Number.isFinite(value) ? value : null;
+        const target = metric.key === "distance_m" ? gpsTarget(e.player_line, targets, {}) : null;
+        const percentage = gpsTargetPercent(number, target);
         return <div key={metric.key} className="min-w-0 px-2">
           <p className="gps-comparison-label mb-1 text-xs text-muted-foreground">{metric.title}</p>
           <p className="mb-2 text-base font-semibold tabular-nums">{fmt(number)} <span className="text-xs font-normal text-muted-foreground">{metric.unit}</span></p>
-          <svg role="img" aria-label={`${name(e)} · ${metric.title}: ${fmt(number)} ${metric.unit}`} viewBox="0 0 200 10" className="h-2.5 w-full" preserveAspectRatio="none">
+          {metric.key === "distance_m" && <p className="mb-2 text-xs text-muted-foreground">{target == null ? "Sin objetivo" : `Objetivo ${fmt(target)} m · ${fmt(percentage)}%`}</p>}
+          <svg role="img" aria-label={`${name(e)} · ${metric.title}: ${fmt(number)} ${metric.unit}${percentage == null ? "" : ` · ${fmt(percentage)}% del objetivo`}`} viewBox="0 0 200 10" className="h-2.5 w-full" preserveAspectRatio="none">
             <rect width="200" height="10" rx="2" fill="var(--muted)" />
-            <rect width={Math.max(0, ((number ?? 0) / (maxima[index] ?? 1)) * 200)} height="10" rx="2" fill={metric.paint} />
+            <rect width={target == null ? Math.max(0, ((number ?? 0) / (maxima[index] ?? 1)) * 200) : Math.min(200, Math.max(0, (percentage ?? 0) * 2))} height="10" rx="2" fill={metric.paint} />
           </svg>
         </div>;
       })}
     </div>)}</div>
-    <p className="mt-4 text-xs text-muted-foreground">Cada columna tiene su propia escala: la barra completa corresponde al mayor valor registrado en esa métrica. «—»: dato no disponible.</p>
+    <p className="mt-4 text-xs text-muted-foreground">Distancia con objetivo: barra completa = 100%; el porcentaje muestra también lo que supera el objetivo. Sin objetivo, ritmo y alta velocidad: escala del mayor valor de cada columna. Es cumplimiento de distancia, no una valoración de riesgo. «—»: dato no disponible.</p>
   </section>;
 }
 
@@ -54,7 +57,8 @@ export const GpsReport = forwardRef<HTMLDivElement, {
   entries: GpsReportEntry[];
   isValid: (e: GpsReportEntry) => boolean;
   rpe: Record<string, { rpe: number; load: number | null }>;
-}>(function GpsReport({ session, entries, isValid, rpe }, ref) {
+  targets?: GpsTargets;
+}>(function GpsReport({ session, entries, isValid, rpe, targets = {} }, ref) {
   const clean = entries.filter(isValid);
   return <div ref={ref} className="report-sheet overflow-hidden border border-border bg-card text-card-foreground">
     <section data-report-page className="bg-card px-5 py-7 sm:px-8">
@@ -67,7 +71,7 @@ export const GpsReport = forwardRef<HTMLDivElement, {
       </div>
       <p className="mt-5 text-sm text-muted-foreground">Promedios de los valores guardados disponibles; incluyen ceros y no reemplazan datos faltantes.{clean.length !== entries.length && " Los registros pendientes de revisión están identificados junto al nombre e incluidos en los promedios."}</p>
     </section>
-    <SessionComparison entries={entries} isValid={isValid} />
+    <SessionComparison entries={entries} isValid={isValid} targets={targets} />
     <section data-report-page className="border-t border-border bg-card px-5 py-6 sm:px-8">
       <h3 className="mb-5 font-display text-2xl font-bold uppercase">Detalle por jugador</h3>
       <div className="space-y-5">{entries.map(e => {
