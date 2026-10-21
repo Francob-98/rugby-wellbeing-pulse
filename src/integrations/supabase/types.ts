@@ -67,6 +67,24 @@ export type Database = {
           },
         ]
       }
+      gps_distance_references: {
+        Row: {
+          distance_m: number
+          player_line: string
+          session_type: string
+        }
+        Insert: {
+          distance_m: number
+          player_line: string
+          session_type: string
+        }
+        Update: {
+          distance_m?: number
+          player_line?: string
+          session_type?: string
+        }
+        Relationships: []
+      }
       gps_entries: {
         Row: {
           accel_decel: number | null
@@ -83,6 +101,7 @@ export type Database = {
           max_decel: number | null
           max_speed: number | null
           player_id: string | null
+          player_line: string | null
           position: string | null
           session_id: string
           sprint_per_min: number | null
@@ -102,6 +121,7 @@ export type Database = {
           max_decel?: number | null
           max_speed?: number | null
           player_id?: string | null
+          player_line?: string | null
           position?: string | null
           session_id: string
           sprint_per_min?: number | null
@@ -121,6 +141,7 @@ export type Database = {
           max_decel?: number | null
           max_speed?: number | null
           player_id?: string | null
+          player_line?: string | null
           position?: string | null
           session_id?: string
           sprint_per_min?: number | null
@@ -144,9 +165,11 @@ export type Database = {
       }
       gps_sessions: {
         Row: {
+          backs_target_m: number | null
           created_at: string
           created_by: string | null
           description: string | null
+          forwards_target_m: number | null
           id: string
           session_date: string
           session_type: string
@@ -154,9 +177,11 @@ export type Database = {
           team: string
         }
         Insert: {
+          backs_target_m?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          forwards_target_m?: number | null
           id?: string
           session_date?: string
           session_type?: string
@@ -164,9 +189,11 @@ export type Database = {
           team?: string
         }
         Update: {
+          backs_target_m?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          forwards_target_m?: number | null
           id?: string
           session_date?: string
           session_type?: string
