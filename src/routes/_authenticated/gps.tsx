@@ -42,8 +42,8 @@ function matchPlayer(gpsName: string, players: { id: string; full_name: string }
   const [last = "", first = ""] = norm(gpsName).split(",").map((x) => x.trim());
   const firstTok = first.split(" ")[0] ?? "";
   const cands = players.filter((p) => norm(p.full_name).split(" ").includes(last.split(" ")[0] ?? ""));
-  const exact = cands.find((p) => norm(p.full_name).split(" ").some((t) => firstTok && (t === firstTok || (firstTok.length <= 2 && t.startsWith(firstTok[0]!)))));
-  return exact?.id ?? (cands.length === 1 ? cands[0]!.id : null);
+  const exact = cands.find((p) => norm(p.full_name).split(" ").some((t) => firstTok && (t === firstTok || (firstTok.length <= 2 && t.startsWith(firstTok.charAt(0))))));
+  return exact?.id ?? (cands.length === 1 ? cands[0]?.id ?? null : null);
 }
 
 function warnings(r: GpsRow) {
@@ -68,15 +68,15 @@ function GpsPage() {
   const [selected, setSelected] = useState<string | null>(null);
 
   const read = async () => {
-    if (!file) return toast.error("Elegí el PDF del GPS.");
-    if (file.size > 10_000_000) return toast.error("El PDF supera 10 MB.");
+    if (!file) { toast.error("Elegí el PDF del GPS."); return; }
+    if (file.size > 10_000_000) { toast.error("El PDF supera 10 MB."); return; }
     setReading(true);
     try {
       const bytes = new Uint8Array(await file.arrayBuffer());
       let bin = "";
       for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
       const r = await extract({ data: { filename: file.name, base64: btoa(bin) } });
-      if ("error" in r) return toast.error(r.error);
+      if ("error" in r) { toast.error(r.error); return; }
       setRows(r.rows.map((x) => ({ ...x, player_id: matchPlayer(x.gps_name, players) })));
       if (!desc && r.activity) setDesc(r.activity);
     } catch { toast.error("No se pudo leer el PDF."); }
@@ -97,7 +97,7 @@ function GpsPage() {
     onError: () => toast.error("No se pudo guardar la sesión."),
   });
 
-  const upd = (i: number, patch: Partial<Row>) => setRows((rs) => rs!.map((r, j) => (j === i ? { ...r, ...patch } : r)));
+  const upd = (i: number, patch: Partial<Row>) => setRows((rs) => rs?.map((r, j) => (j === i ? { ...r, ...patch } : r)) ?? null);
   const unmatched = rows?.filter((r) => !r.player_id).length ?? 0;
 
   return (
@@ -186,12 +186,12 @@ function History({ selected, onSelect }: { selected: string | null; onSelect: (i
   const del = async (id: string) => {
     if (!confirm("¿Eliminar esta sesión GPS?")) return;
     const { error } = await supabase.from("gps_sessions").delete().eq("id", id);
-    if (error) return toast.error("No se pudo eliminar.");
+    if (error) { toast.error("No se pudo eliminar."); return; }
     qc.invalidateQueries({ queryKey: ["gps"] });
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
+    <div className="grid min-w-0 gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
       <Panel title="Historial">
         {!sessions.length && <p className="text-sm text-muted-foreground">Todavía no hay sesiones GPS.</p>}
         <ul className="space-y-1">
