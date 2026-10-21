@@ -40,7 +40,7 @@ function SessionComparison({ entries, isValid }: { entries: GpsReportEntry[]; is
           <p className="mb-2 text-base font-semibold tabular-nums">{fmt(number)} <span className="text-xs font-normal text-muted-foreground">{metric.unit}</span></p>
           <svg role="img" aria-label={`${name(e)} · ${metric.title}: ${fmt(number)} ${metric.unit}`} viewBox="0 0 200 10" className="h-2.5 w-full" preserveAspectRatio="none">
             <rect width="200" height="10" rx="2" fill="var(--muted)" />
-            <rect width={Math.max(0, ((number ?? 0) / maxima[index]) * 200)} height="10" rx="2" fill={metric.paint} />
+            <rect width={Math.max(0, ((number ?? 0) / (maxima[index] ?? 1)) * 200)} height="10" rx="2" fill={metric.paint} />
           </svg>
         </div>;
       })}
