@@ -2,12 +2,12 @@
 - [x] Generate and inspect a test PDF and PNG with pain maps, then deliver both files.
 - [x] Allow separate pre-training and post-training reports for sharing; verified both PDF downloads.
 - [x] Fix blank general-report exports and verify actual PDF/PNG contents at narrow and desktop widths.
-- [x] Simplify staff reports with wellness traffic lights/gauge and separate post-training PSE bars, durations, pain attribution and comments.
+- [x] Simplify staff reports with wellness traffic lights/gauge and separate post-training RPE bars, durations, pain attribution and comments.
 - [x] Verify populated PNG/PDF exports and phase filtering on desktop and narrow screens.- [x] Módulo Seguimiento Diferenciado (formularios, vista staff, PNG/PDF).
 - [x] Make PDF sections continuous; downloaded populated general and differentiated reports and visually inspected all five pages, with no missing or clipped content.
 - [x] Wellness Diferenciados asks only motivo + zona (no restriction); verified a real pre-entreno submit and the staff tab shows "—" for restriction/evolution.
 - [x] Remove the GPS module entirely at the user's request (route, nav tab, report components, metrics and PDF extraction); database tables kept untouched.
-- [ ] Keep position selection in questionnaires only; unify effort terminology as RPE.
-- [ ] Allow admins to reject staff access and revoke existing access.
-- [ ] Replace player deletion with Desafectado status, preserving histories; verify populated flows.
+- [x] Keep position selection in questionnaires only; RPE verified in a populated individual report and changing player requires line reconfirmation.
+- [x] Allow admins to reject staff access and revoke existing access; rejection, approval and revocation verified in UI with a temporary profile, then removed.
+- [x] Replace player deletion with Desafectado status; verified four sessions remain visible and the questionnaire excludes the inactive player, then restored original active status.
 
