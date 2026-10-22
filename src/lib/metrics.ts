@@ -1,4 +1,4 @@
-import { format, subDays, parseISO, differenceInCalendarDays } from "date-fns";
+import { format, subDays, parseISO, differenceInCalendarDays, startOfWeek } from "date-fns";
 
 export interface WellnessEntry {
   player_line?: string | null;
@@ -41,21 +41,60 @@ export const wellnessPct = (e: WellnessEntry) =>
 
 export const avg = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
 
-export function acwr(sessions: SessionEntry[], ref = today()) {
-  const refD = parseISO(ref);
-  let acute = 0, chronic = 0;
-  for (const s of sessions) {
-    const d = differenceInCalendarDays(refD, parseISO(s.entry_date));
-    if (d < 0) continue;
-    if (d < 7) acute += s.load;
-    if (d < 28) chronic += s.load;
-  }
-  const chronicWeekly = chronic / 4;
-  return { acute, chronicWeekly: Math.round(chronicWeekly), ratio: chronicWeekly ? acute / chronicWeekly : null };
+/** Days of history needed: current week (up to 7 days) + 4 previous full weeks. */
+export const WEEKLY_HISTORY_DAYS = 35;
+/** Minimum previous weeks with registered sessions to compute a usual range. */
+export const MIN_HISTORY_WEEKS = 3;
+
+export interface WeeklyLoad {
+  current: number;
+  weeks: number[]; // previous 4 full weeks (oldest → newest), empty weeks count as 0
+  mean: number | null;
+  sd: number | null;
+  low: number | null;
+  high: number | null;
+  changePct: number | null;
 }
 
-export const acwrStatus = (r: number | null) =>
-  r == null ? "none" : r > 1.5 ? "high" : r < 0.8 ? "low" : "ok";
+/**
+ * Carga semanal (lunes a domingo, suma de RPE × minutos) vs. rango habitual
+ * (promedio ± 1 desvío estándar de las 4 semanas completas anteriores).
+ */
+export function weeklyLoad(sessions: SessionEntry[], ref = today()): WeeklyLoad {
+  const refD = parseISO(ref);
+  const monday = startOfWeek(refD, { weekStartsOn: 1 });
+  let current = 0;
+  const weeks = [0, 0, 0, 0];
+  const withData = [false, false, false, false];
+  for (const s of sessions) {
+    const d = parseISO(s.entry_date);
+    if (d > refD) continue;
+    const diff = differenceInCalendarDays(monday, d);
+    if (diff <= 0) { current += s.load; continue; }
+    const idx = 3 - Math.floor((diff - 1) / 7);
+    if (idx >= 0) { weeks[idx] = (weeks[idx] ?? 0) + s.load; withData[idx] = true; }
+  }
+  if (withData.filter(Boolean).length < MIN_HISTORY_WEEKS) {
+    return { current, weeks, mean: null, sd: null, low: null, high: null, changePct: null };
+  }
+  const mean = weeks.reduce((a, b) => a + b, 0) / 4;
+  const sd = Math.sqrt(weeks.reduce((a, b) => a + (b - mean) ** 2, 0) / 4);
+  return {
+    current, weeks,
+    mean: Math.round(mean), sd: Math.round(sd),
+    low: Math.max(0, Math.round(mean - sd)), high: Math.round(mean + sd),
+    changePct: mean > 0 ? Math.round(((current - mean) / mean) * 100) : null,
+  };
+}
+
+/** Orientativo, no un umbral validado: >30% rojo, >15% amarillo. */
+export const weeklyStatus = (pct: number | null) =>
+  pct == null ? "none" : pct > 30 ? "high" : pct > 15 ? "warn" : "ok";
+
+export const formatWeekly = (w: WeeklyLoad) =>
+  w.changePct == null
+    ? `${w.current} UA · historial insuficiente`
+    : `${w.current} UA · ${w.changePct > 0 ? "+" : ""}${w.changePct}% vs. su promedio (habitual ${w.low}–${w.high})`;
 
 export function painHeat(entries: { pain_zones: Record<string, number> }[]) {
   const heat: Record<string, number> = {};

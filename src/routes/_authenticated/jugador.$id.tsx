@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Bar, CartesianGrid, ComposedChart, Legend, Line, LineChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { PlayerPicker, usePlayers } from "@/components/PlayerPicker";
 import { useEntries } from "@/lib/staff-data";
-import { acwr, acwrStatus, dateRange, painHeat, shortDate, wellnessPct } from "@/lib/metrics";
+import { weeklyLoad, weeklyStatus, dateRange, painHeat, shortDate, wellnessPct } from "@/lib/metrics";
 import { BodyMap, PainLegend, zoneLabel } from "@/components/BodyMap";
 import { Kpi, Panel, RangeSelect, chartTooltipStyle } from "@/components/staff/Widgets";
 import { format, parseISO, subDays } from "date-fns";
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_authenticated/jugador/$id")({
   head: () => ({
     meta: [
       { title: "Ficha de jugador · CBMM Rugby" },
-      { name: "description", content: "Wellness, carga, ACWR y mapa de dolor de un jugador." },
+      { name: "description", content: "Wellness, carga semanal y mapa de dolor de un jugador." },
       { property: "og:title", content: "Ficha de jugador · CBMM Rugby" },
       { property: "og:description", content: "Seguimiento individual de cargas." },
       { property: "og:type", content: "website" },
@@ -47,7 +47,6 @@ function PlayerPage() {
         wellness: we ? wellnessPct(we) : null,
         carga: ses.reduce((a, b) => a + b.load, 0) || null,
         rpe: ses.length ? Math.max(...ses.map((x) => x.rpe)) : null,
-        acwr: (() => { const r = acwr(s, d).ratio; return r ? Number(r.toFixed(2)) : null; })(),
       };
     });
     const last = wR.at(-1);
@@ -57,10 +56,10 @@ function PlayerPage() {
     ] : [];
     const comments = sR.filter((e) => e.comments).reverse();
     const lastPain = { ...(wR.at(-1)?.pain_zones ?? {}), ...(sR.at(-1)?.pain_zones ?? {}) };
-    return { daily, last, radar, comments, heat: painHeat([...wR, ...sR]), lastPain, sR, a: acwr(s) };
+    return { daily, last, radar, comments, heat: painHeat([...wR, ...sR]), lastPain, sR, a: weeklyLoad(s) };
   }, [data, days]);
 
-  const st = acwrStatus(v.a.ratio);
+  const st = weeklyStatus(v.a.changePct);
 
   return (
     <div className="space-y-5">
@@ -79,10 +78,10 @@ function PlayerPage() {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Kpi label="Último wellness" value={v.last ? `${wellnessPct(v.last)}%` : "—"} sub={v.last ? shortDate(v.last.entry_date) : "sin datos"}
           tone={v.last ? (wellnessPct(v.last) >= 70 ? "ok" : wellnessPct(v.last) >= 60 ? "warn" : "bad") : undefined} />
-        <Kpi label="Carga aguda (7d)" value={v.a.acute || "—"} sub="UA (RPE × min)" />
-        <Kpi label="Carga crónica" value={v.a.chronicWeekly || "—"} sub="promedio semanal 28d" />
-        <Kpi label="ACWR" value={v.a.ratio ? v.a.ratio.toFixed(2) : "—"} sub="zona óptima 0.8 – 1.3"
-          tone={st === "ok" ? "ok" : st === "high" ? "bad" : st === "low" ? "warn" : undefined} />
+        <Kpi label="Carga semanal" value={v.a.current || "—"} sub="UA lunes a hoy (RPE × min)" />
+        <Kpi label="Rango habitual" value={v.a.low != null ? `${v.a.low}–${v.a.high}` : "—"} sub={v.a.mean != null ? `promedio ${v.a.mean} UA · 4 semanas` : "historial insuficiente"} />
+        <Kpi label="Cambio vs. promedio" value={v.a.changePct != null ? `${v.a.changePct > 0 ? "+" : ""}${v.a.changePct}%` : "—"} sub="amarillo +15% · rojo +30% (orientativo)"
+          tone={st === "ok" ? "ok" : st === "high" ? "bad" : st === "warn" ? "warn" : undefined} />
       </div>
 
       {isLoading ? <p className="text-muted-foreground">Cargando…</p> : (
@@ -132,17 +131,15 @@ function PlayerPage() {
                 </ComposedChart>
               </ResponsiveContainer>
             </Panel>
-            <Panel title="ACWR y horas de sueño">
+            <Panel title="Horas de sueño">
               <ResponsiveContainer width="100%" height={240}>
                 <ComposedChart data={v.daily}>
                   <CartesianGrid stroke="var(--border)" vertical={false} />
                   <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" />
-                  <YAxis yAxisId="l" domain={[0, 2]} tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" />
-                  <YAxis yAxisId="r" orientation="right" domain={[0, 12]} tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" />
+                                    <YAxis yAxisId="r" domain={[0, 12]} tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" />
                   <Tooltip contentStyle={chartTooltipStyle} />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Bar yAxisId="r" dataKey="horas" name="Horas sueño" fill="var(--chart-5)" fillOpacity={0.4} radius={[4, 4, 0, 0]} />
-                  <Line yAxisId="l" dataKey="acwr" name="ACWR" stroke="var(--chart-2)" strokeWidth={3} connectNulls dot={false} />
                 </ComposedChart>
               </ResponsiveContainer>
             </Panel>

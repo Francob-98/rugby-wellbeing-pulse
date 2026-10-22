@@ -4,7 +4,7 @@ import { Flag, Sun } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from "recharts";
 import { usePlayers } from "@/components/PlayerPicker";
 import { useEntries } from "@/lib/staff-data";
-import { acwr, acwrStatus, avg, dateRange, painHeat, shortDate, today, wellnessPct } from "@/lib/metrics";
+import { formatWeekly, weeklyLoad, weeklyStatus, avg, dateRange, painHeat, shortDate, today, wellnessPct } from "@/lib/metrics";
 import { TEAMS, SESSION_TYPES } from "@/lib/constants";
 import { BodyMap, PainLegend, zoneLabel } from "@/components/BodyMap";
 import { Kpi, Panel, RangeSelect, StatusPill, chartTooltipStyle } from "@/components/staff/Widgets";
@@ -62,7 +62,7 @@ function PanelPage() {
       const lastW = pw.at(-1);
       const ps_ = s.filter((e) => e.player_id === p.id);
       const lastS = ps_.at(-1);
-      const a = acwr(ps_);
+      const a = weeklyLoad(ps_);
       const painCount = Object.keys(lastW?.pain_zones ?? {}).length + Object.keys(lastS?.pain_zones ?? {}).length;
       return { p, lastW, lastS, a, painCount, todayW: lastW?.entry_date === t };
     }).sort((x, y) => (x.lastW ? wellnessPct(x.lastW) : 999) - (y.lastW ? wellnessPct(y.lastW) : 999));
@@ -76,7 +76,7 @@ function PanelPage() {
 
   const avgToday = avg(view.todayW.map(wellnessPct));
   const avgRpe = avg(view.sR.map((entry) => entry.rpe));
-  const alerts = view.rows.filter((r) => (r.lastW && wellnessPct(r.lastW) < 60) || acwrStatus(r.a.ratio) === "high").length;
+  const alerts = view.rows.filter((r) => (r.lastW && wellnessPct(r.lastW) < 60) || weeklyStatus(r.a.changePct) === "high").length;
 
   return (
     <div className="space-y-5">
@@ -173,15 +173,14 @@ function PanelPage() {
                       <TableHead>Jugador</TableHead>
                       <TableHead>Wellness</TableHead>
                       <TableHead>Últ. RPE</TableHead>
-                      <TableHead>Carga 7d</TableHead>
-                      <TableHead>ACWR</TableHead>
+                      <TableHead>Carga semanal vs. habitual</TableHead>
                       <TableHead>Dolor</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {view.rows.map(({ p, lastW, lastS, a, painCount, todayW }) => {
                       const pct = lastW ? wellnessPct(lastW) : null;
-                      const st = acwrStatus(a.ratio);
+                      const st = weeklyStatus(a.changePct);
                       return (
                         <TableRow key={p.id}>
                           <TableCell>
@@ -193,18 +192,18 @@ function PanelPage() {
                               <StatusPill status={pct >= 70 ? "ok" : pct >= 60 ? "warn" : "bad"}>{pct}%{!todayW && " ·" + shortDate(lastW!.entry_date)}</StatusPill>}
                           </TableCell>
                           <TableCell>{lastS?.rpe ?? "—"}</TableCell>
-                          <TableCell>{a.acute || "—"}</TableCell>
-                          <TableCell><StatusPill status={st}>{a.ratio ? a.ratio.toFixed(2) : "—"}</StatusPill></TableCell>
+                          <TableCell><StatusPill status={st}>{formatWeekly(a)}</StatusPill></TableCell>
                           <TableCell>{painCount ? <StatusPill status="warn">{painCount} zonas</StatusPill> : "—"}</TableCell>
                         </TableRow>
                       );
                     })}
                     {!view.rows.length && (
-                      <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">Cargá jugadores en “Plantel” para empezar.</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">Cargá jugadores en “Plantel” para empezar.</TableCell></TableRow>
                     )}
                   </TableBody>
                 </Table>
               </div>
+              <p className="mt-2 text-xs text-muted-foreground">Carga semanal = suma de RPE × minutos de lunes a hoy. Habitual = promedio ± 1 desvío de las 4 semanas anteriores. Amarillo: +15% · Rojo: +30% (orientativo, no es un umbral clínico).</p>
             </Panel>
             <Panel title="Mapa de dolor del plantel">
               <BodyMap heat={view.heat} />
