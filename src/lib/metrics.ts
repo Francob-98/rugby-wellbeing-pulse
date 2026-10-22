@@ -72,7 +72,7 @@ export function weeklyLoad(sessions: SessionEntry[], ref = today()): WeeklyLoad 
     const diff = differenceInCalendarDays(monday, d);
     if (diff <= 0) { current += s.load; continue; }
     const idx = 3 - Math.floor((diff - 1) / 7);
-    if (idx >= 0) { weeks[idx] += s.load; withData[idx] = true; }
+    if (idx >= 0) { weeks[idx] = (weeks[idx] ?? 0) + s.load; withData[idx] = true; }
   }
   if (withData.filter(Boolean).length < MIN_HISTORY_WEEKS) {
     return { current, weeks, mean: null, sd: null, low: null, high: null, changePct: null };
