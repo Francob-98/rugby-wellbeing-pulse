@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowDown, ArrowUp, GitCompare, Minus } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { usePlayers } from "@/components/PlayerPicker";
 import { compareDates, type CompareMetrics, type CompareResult } from "@/lib/ai-compare.functions";
 import { TEAMS } from "@/lib/constants";
 import { daysAgo, today } from "@/lib/metrics";
@@ -19,7 +18,7 @@ const ROWS: { key: keyof CompareMetrics; label: string; higherBetter: boolean | 
   { key: "sueno", label: "Horas de sueño", higherBetter: true, unit: "h" },
   { key: "frescura", label: "Frescura (1-5)", higherBetter: true },
   { key: "sinDolor", label: "Sin dolor (1-5)", higherBetter: true },
-  { key: "rpe", label: "PSE / RPE promedio", higherBetter: null },
+  { key: "rpe", label: "RPE promedio", higherBetter: null },
   { key: "duracion", label: "Duración media", higherBetter: null, unit: "′" },
   { key: "carga", label: "Carga total", higherBetter: null },
   { key: "zonasDolor", label: "Zonas de dolor", higherBetter: false },
@@ -37,10 +36,7 @@ export function AiCompare() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<CompareResult | null>(null);
   const compare = useServerFn(compareDates);
-  const players = useQuery({
-    queryKey: ["players-active-list"],
-    queryFn: async () => (await supabase.from("players").select("id,full_name").eq("active", true).order("full_name")).data ?? [],
-  });
+  const players = usePlayers();
 
   const run = async () => {
     setLoading(true); setResult(null);
@@ -77,7 +73,7 @@ export function AiCompare() {
           <Field label="Jugador">
             <Select value={playerId} onValueChange={setPlayerId}>
               <SelectTrigger><SelectValue placeholder="Elegí un jugador" /></SelectTrigger>
-              <SelectContent>{(players.data ?? []).map((p) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}</SelectContent>
+              <SelectContent>{(players.data ?? []).map((p) => <SelectItem key={p.id} value={p.id}>{p.full_name}{!p.active ? " · Desafectado" : ""}</SelectItem>)}</SelectContent>
             </Select>
           </Field>
         )}

@@ -90,7 +90,7 @@ export function PostResponse({ entry, player }: { entry: SessionEntry; player: P
   return <div className="border-t border-border py-4" data-report-block>
     <ReadableBar label={player?.full_name ?? "Jugador no disponible"} value={entry.rpe} max={10} suffix="/10" effort />
     <p className="mt-2 text-xs text-muted-foreground">{entry.duration_min} min · {entry.session_type ?? "Entrenamiento"} · {entry.team} · {entry.load} UA · {new Date(entry.created_at).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}</p>
-    {entry.rpe >= 8 && <p className="mt-1 text-sm font-semibold text-destructive">PSE ≥8: requiere seguimiento</p>}
+    {entry.rpe >= 8 && <p className="mt-1 text-sm font-semibold text-destructive">RPE ≥8: requiere seguimiento</p>}
     <p className="mt-2 whitespace-pre-wrap break-words text-sm"><strong>Comentario: </strong>{entry.comments?.trim() || "Sin comentarios."}</p>
   </div>;
 }
