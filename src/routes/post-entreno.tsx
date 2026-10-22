@@ -89,7 +89,7 @@ function PostPage() {
     <FormShell kicker="Post entreno" title="¿Cómo terminaste?">
       <div className="space-y-5">
         <Section title="Sesión">
-          <PlayerPicker value={playerId} onChange={(id) => setPlayerId(id)} />
+          <PlayerPicker value={playerId} onChange={(id) => { setPlayerId(id); setLine(""); }} />
           <LinePicker value={line} onChange={setLine} />
           <div className="space-y-1.5">
             <Label>Equipo en el que participaste</Label>

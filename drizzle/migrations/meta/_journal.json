@@ -43,6 +43,13 @@
       "when": 1792601606862,
       "tag": "0005_gps_distance_targets",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792681947089,
+      "tag": "0006_staff_access_decisions_preserve_players",
+      "breakpoints": true
     }
   ]
 }

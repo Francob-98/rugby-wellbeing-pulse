@@ -306,6 +306,35 @@ export type Database = {
           },
         ]
       }
+      staff_access_decisions: {
+        Row: {
+          decided_by: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          decided_by: string
+          status: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          decided_by?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_access_decisions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -382,6 +411,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      decide_staff_access: {
+        Args: { _status: string; _user_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

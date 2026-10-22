@@ -193,7 +193,7 @@ const TeamReport = function TeamReport({ ref, date, team, phase, players, wellne
   sessions: SessionEntry[];
   loading: boolean;
 }) {
-  const roster = players.filter((player) => player.active && (team === "all" || player.team === team));
+  const roster = players.filter((player) => (team === "all" || player.team === team));
   const rosterIds = new Set(roster.map((player) => player.id));
   const selectedWellness = wellness.filter((entry) => rosterIds.has(entry.player_id));
   const selectedSessions = sessions.filter((entry) => team === "all" || entry.team === team);
@@ -209,7 +209,7 @@ const TeamReport = function TeamReport({ ref, date, team, phase, players, wellne
         {phase !== "post" && <>
           <div data-report-page className="bg-card p-6 sm:p-8">
             <ReportHeader title={title} date={date} eyebrow="Antes del entrenamiento · Wellness" />
-            <p className="my-5 text-sm"><strong>{selectedWellness.length} respuestas</strong> de {new Set(selectedWellness.map(e => e.player_id)).size} jugadores · {roster.length} jugadores activos</p>
+            <p className="my-5 text-sm"><strong>{selectedWellness.length} respuestas</strong> de {new Set(selectedWellness.map(e => e.player_id)).size} jugadores · {roster.filter(p => p.active).length} jugadores activos</p>
             <WellnessOverview entries={selectedWellness} />
             <ReportFooter />
           </div>
@@ -230,20 +230,20 @@ const TeamReport = function TeamReport({ ref, date, team, phase, players, wellne
         </>}
         {phase !== "pre" && <>
           <div data-report-page className="bg-card p-6 sm:p-8">
-            <ReportHeader title={title} date={date} eyebrow="Después del entrenamiento · PSE y carga" />
+            <ReportHeader title={title} date={date} eyebrow="Después del entrenamiento · RPE y carga" />
             <div className="report-metrics my-6 grid grid-cols-2 gap-3">
               <Metric label="Respuestas post" value={String(selectedSessions.length)} note={`${new Set(selectedSessions.map(e => e.player_id)).size} jugadores`} />
-              <Metric label="PSE promedio" value={rpe?.toFixed(1) ?? "—"} note="esfuerzo percibido · sobre 10" tone={rpe != null && rpe >= 8 ? "bad" : "default"} />
+              <Metric label="RPE promedio" value={rpe?.toFixed(1) ?? "—"} note="esfuerzo percibido · sobre 10" tone={rpe != null && rpe >= 8 ? "bad" : "default"} />
               <Metric label="Duración media" value={selectedSessions.length ? String(Math.round(minutes / selectedSessions.length)) : "—"} note="minutos por respuesta" />
-              <Metric label="Carga total" value={String(load)} note="UA · PSE × minutos" />
+              <Metric label="Carga total" value={String(load)} note="UA · RPE × minutos" />
             </div>
-            <ReadableBar label="PSE promedio del grupo" value={rpe} max={10} suffix="/10" effort />
+            <ReadableBar label="RPE promedio del grupo" value={rpe} max={10} suffix="/10" effort />
             <p className="mt-3 text-xs text-muted-foreground">1–4: menor esfuerzo · 5–7: esfuerzo elevado · 8–10: seguimiento prioritario</p>
             <div className="mt-6 space-y-4">
-              <ReadableBar label="Entrenamiento · PSE promedio" value={avg(selectedSessions.filter(e => e.session_type !== "Partido").map(e => e.rpe))} max={10} suffix="/10" effort />
-              <ReadableBar label="Partido · PSE promedio" value={avg(selectedSessions.filter(e => e.session_type === "Partido").map(e => e.rpe))} max={10} suffix="/10" effort />
+              <ReadableBar label="Entrenamiento · RPE promedio" value={avg(selectedSessions.filter(e => e.session_type !== "Partido").map(e => e.rpe))} max={10} suffix="/10" effort />
+              <ReadableBar label="Partido · RPE promedio" value={avg(selectedSessions.filter(e => e.session_type === "Partido").map(e => e.rpe))} max={10} suffix="/10" effort />
             </div>
-            <p className="mt-6 border-l-4 border-destructive pl-3 text-sm"><strong>{new Set(selectedSessions.filter(e => e.rpe >= 8).map(e => e.player_id)).size} jugadores con PSE ≥8</strong> · {new Set(selectedSessions.filter(e => Object.keys(e.pain_zones ?? {}).length).map(e => e.player_id)).size} con zonas de dolor informadas.</p>
+            <p className="mt-6 border-l-4 border-destructive pl-3 text-sm"><strong>{new Set(selectedSessions.filter(e => e.rpe >= 8).map(e => e.player_id)).size} jugadores con RPE ≥8</strong> · {new Set(selectedSessions.filter(e => Object.keys(e.pain_zones ?? {}).length).map(e => e.player_id)).size} con zonas de dolor informadas.</p>
             {!selectedSessions.length && <EmptyText text="Sin respuestas post-entreno para esta fecha." />}
             <ReportFooter />
           </div>
@@ -253,7 +253,7 @@ const TeamReport = function TeamReport({ ref, date, team, phase, players, wellne
             <ReportFooter />
           </div>
           {chunks(selectedSessions, 6).map((group, index) => <div key={`post-${index}`} data-report-page className="bg-card p-6 sm:p-8">
-            <ReportHeader title="PSE por jugador" date={date} eyebrow={`${title} · Duración y comentarios · ${index + 1}`} />
+            <ReportHeader title="RPE por jugador" date={date} eyebrow={`${title} · Duración y comentarios · ${index + 1}`} />
             <div className="mt-5">{group.map(entry => <PostResponse key={entry.id} entry={entry} player={players.find(p => p.id === entry.player_id)} />)}</div>
             <ReportFooter />
           </div>)}
@@ -298,7 +298,7 @@ const PlayerReport = function PlayerReport({ ref, date, dateTo, player, wellness
             </div>
           ) : (
             <div className="mt-5 space-y-3">
-              <ReadableBar label="PSE · Esfuerzo percibido" value={item.entry.rpe} max={10} suffix="/10" effort /><div className="grid grid-cols-2 gap-3"><Metric label="PSE (RPE)" value={`${item.entry.rpe}/10`} tone={item.entry.rpe >= 8 ? "bad" : "default"} /><Metric label="Carga" value={`${item.entry.load} UA`} /></div>
+              <ReadableBar label="RPE · Esfuerzo percibido" value={item.entry.rpe} max={10} suffix="/10" effort /><div className="grid grid-cols-2 gap-3"><Metric label="RPE" value={`${item.entry.rpe}/10`} tone={item.entry.rpe >= 8 ? "bad" : "default"} /><Metric label="Carga" value={`${item.entry.load} UA`} /></div>
               <ReportRow label="Tipo de sesión" value={item.entry.session_type ?? "Entrenamiento"} />
               <ReportRow label="Equipo" value={item.entry.team} />
               <ReportRow label="Duración" value={`${item.entry.duration_min} min`} />

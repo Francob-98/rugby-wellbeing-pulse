@@ -34,7 +34,7 @@ function PlayerPage() {
     const w = data?.wellness ?? [];
     const s = data?.sessions ?? [];
     const range = dateRange(days);
-    const start = range[0]!;
+    const start = range[0] ?? "";
     const wR = w.filter((e) => e.entry_date >= start);
     const sR = s.filter((e) => e.entry_date >= start);
     const daily = range.map((d) => {
@@ -66,7 +66,7 @@ function PlayerPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="font-display text-sm uppercase tracking-widest text-accent">{player?.team ?? "Jugador"}{player?.position ? ` · ${player.position}` : ""}</p>
+          <p className="font-display text-sm uppercase tracking-widest text-accent">{player?.active === false ? "Desafectado" : "Jugador"}</p>
           <h1 className="font-display text-4xl font-bold uppercase">{player?.full_name ?? "…"}</h1>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -154,13 +154,13 @@ function PlayerPage() {
                 <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
                   <Kpi label="Sesiones" value={v.sR.length} />
                   <Kpi label="Minutos totales" value={v.sR.reduce((a, b) => a + b.duration_min, 0)} />
-                  <Kpi label="PSE promedio" value={(v.sR.reduce((a, b) => a + b.rpe, 0) / v.sR.length).toFixed(1)} />
+                  <Kpi label="RPE promedio" value={(v.sR.reduce((a, b) => a + b.rpe, 0) / v.sR.length).toFixed(1)} />
                   <Kpi label="Carga total" value={v.sR.reduce((a, b) => a + b.load, 0)} sub="UA" />
                 </div>
                 <div className="max-h-[420px] overflow-auto">
                   <table className="w-full text-sm">
                     <thead className="sticky top-0 bg-card text-left text-xs uppercase tracking-wider text-muted-foreground">
-                      <tr><th className="py-2">Fecha</th><th>Equipo</th><th>Tipo</th><th className="text-right">Min</th><th className="text-right">PSE</th><th className="text-right">Carga</th><th className="pl-3">Evolución</th></tr>
+                      <tr><th className="py-2">Fecha</th><th>Equipo</th><th>Tipo</th><th className="text-right">Min</th><th className="text-right">RPE</th><th className="text-right">Carga</th><th className="pl-3">Evolución</th></tr>
                     </thead>
                     <tbody>
                       {(() => {

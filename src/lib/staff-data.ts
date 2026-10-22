@@ -27,9 +27,15 @@ export function useMyRoles() {
     queryFn: async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return { roles: [] as string[], email: "" };
-      const { data } = await supabase.from("user_roles").select("role").eq("user_id", u.user.id);
-      return { roles: (data ?? []).map((r) => r.role as string), email: u.user.email ?? "" };
+      const [roles, decision] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", u.user.id),
+        supabase.from("staff_access_decisions").select("status").eq("user_id", u.user.id).maybeSingle(),
+      ]);
+      if (roles.error || decision.error) throw roles.error ?? decision.error;
+      return { roles: (roles.data ?? []).map((r) => r.role as string), email: u.user.email ?? "", accessStatus: decision.data?.status };
     },
+    staleTime: 0,
+    refetchInterval: 30_000,
   });
 }
 

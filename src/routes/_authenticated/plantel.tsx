@@ -2,17 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Copy, Trash2 } from "lucide-react";
+import { Copy, UserMinus, UserPlus, ShieldCheck, ShieldX } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePlayers } from "@/components/PlayerPicker";
 import { useMyRoles } from "@/lib/staff-data";
-import { TEAMS } from "@/lib/constants";
+import { playerStatusPatch, staffActions, type StaffDecision } from "@/lib/roster-rules";
 import { Panel } from "@/components/staff/Widgets";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export const Route = createFileRoute("/_authenticated/plantel")({
@@ -29,21 +27,13 @@ export const Route = createFileRoute("/_authenticated/plantel")({
   component: PlantelPage,
 });
 
-function TeamSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  return (
-    <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="bg-card"><SelectValue /></SelectTrigger>
-      <SelectContent>{TEAMS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
-    </Select>
-  );
-}
-
 function PlantelPage() {
   const qc = useQueryClient();
   const { data: players = [] } = usePlayers();
   const { data: me } = useMyRoles();
   const [names, setNames] = useState("");
   const [filter, setFilter] = useState("");
+  const [updating, setUpdating] = useState<string | null>(null);
   const refresh = () => qc.invalidateQueries({ queryKey: ["players"] });
 
   const add = async (): Promise<void> => {
@@ -56,17 +46,16 @@ function PlantelPage() {
     refresh();
   };
 
-  const update = async (id: string, patch: { team?: string; active?: boolean; position?: string | null }) => {
-    const { error } = await supabase.from("players").update(patch).eq("id", id);
-    if (error) toast.error("No se pudo actualizar");
-    refresh();
-  };
-
-  const remove = async (id: string, name: string) => {
-    if (!confirm(`¿Borrar a ${name} y todos sus registros?`)) return;
-    const { error } = await supabase.from("players").delete().eq("id", id);
-    if (error) toast.error("No se pudo borrar");
-    refresh();
+  const setActive = async (id: string, name: string, active: boolean) => {
+    if (!active && !confirm(`¿Marcar a ${name} como desafectado? Su historial se conserva.`)) return;
+    setUpdating(id);
+    try {
+      const { error } = await supabase.from("players").update(playerStatusPatch(active)).eq("id", id).select("id").single();
+      if (error) throw error;
+      toast.success(active ? "Jugador reincorporado" : "Jugador desafectado; historial conservado");
+      await refresh();
+    } catch { toast.error("No se pudo actualizar el estado"); }
+    finally { setUpdating(null); }
   };
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
@@ -100,14 +89,13 @@ function PlantelPage() {
         <Panel title={`Jugadores (${players.length})`} action={<Input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Buscar…" className="h-8 w-40" />}>
           <div className="max-h-[560px] overflow-auto">
             <Table>
-              <TableHeader><TableRow><TableHead>Nombre</TableHead><TableHead>Equipo</TableHead><TableHead>Activo</TableHead><TableHead /></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Nombre</TableHead><TableHead>Estado</TableHead><TableHead /></TableRow></TableHeader>
               <TableBody>
                 {shown.map((p) => (
                   <TableRow key={p.id}>
                     <TableCell className="font-medium">{p.full_name}</TableCell>
-                    <TableCell className="w-48"><TeamSelect value={p.team} onChange={(t) => update(p.id, { team: t })} /></TableCell>
-                    <TableCell><Switch checked={p.active} onCheckedChange={(v) => update(p.id, { active: v })} /></TableCell>
-                    <TableCell><Button size="icon" variant="ghost" onClick={() => remove(p.id, p.full_name)}><Trash2 className="size-4" /></Button></TableCell>
+                    <TableCell className={p.active ? "text-success" : "text-muted-foreground"}>{p.active ? "Activo" : "Desafectado"}</TableCell>
+                    <TableCell className="text-right"><Button size="sm" variant="outline" disabled={updating !== null} onClick={() => setActive(p.id, p.full_name, !p.active)}>{p.active ? <UserMinus className="size-4" /> : <UserPlus className="size-4" />}{p.active ? "Desafectar" : "Reincorporar"}</Button></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -126,21 +114,21 @@ function StaffAdmin() {
   const { data } = useQuery({
     queryKey: ["staff-admin"],
     queryFn: async () => {
-      const [p, r] = await Promise.all([
+      const [p, r, decisions] = await Promise.all([
         supabase.from("profiles").select("id, email, full_name").order("created_at"),
         supabase.from("user_roles").select("user_id, role"),
+        supabase.from("staff_access_decisions").select("user_id, status"),
       ]);
-      return (p.data ?? []).map((x) => ({ ...x, roles: (r.data ?? []).filter((y) => y.user_id === x.id).map((y) => y.role) }));
+      if (p.error || r.error || decisions.error) throw p.error ?? r.error ?? decisions.error;
+      return (p.data ?? []).map((x) => ({ ...x, status: decisions.data?.find((d) => d.user_id === x.id)?.status, roles: (r.data ?? []).filter((y) => y.user_id === x.id).map((y) => y.role) }));
     },
   });
   const toggle = useMutation({
-    mutationFn: async ({ id, approve }: { id: string; approve: boolean }) => {
-      const { error } = approve
-        ? await supabase.from("user_roles").insert({ user_id: id, role: "staff" })
-        : await supabase.from("user_roles").delete().eq("user_id", id).eq("role", "staff");
+    mutationFn: async ({ id, status }: { id: string; status: StaffDecision }) => {
+      const { error } = await supabase.rpc("decide_staff_access", { _user_id: id, _status: status });
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["staff-admin"] }),
+    onSuccess: async () => { toast.success("Acceso actualizado"); await qc.invalidateQueries({ queryKey: ["staff-admin"] }); },
     onError: () => toast.error("No se pudo actualizar"),
   });
 
@@ -156,13 +144,12 @@ function StaffAdmin() {
               <TableRow key={u.id}>
                 <TableCell>{u.full_name ?? "—"}</TableCell>
                 <TableCell>{u.email}</TableCell>
-                <TableCell>{isAdmin ? "Admin" : isStaff ? "Staff" : "Pendiente"}</TableCell>
+                <TableCell>{isAdmin ? "Admin" : isStaff ? "Staff" : u.status === "rejected" ? "Rechazado" : u.status === "revoked" ? "Acceso retirado" : "Pendiente"}</TableCell>
                 <TableCell className="text-right">
-                  {!isAdmin && (
-                    <Button size="sm" variant={isStaff ? "outline" : "default"} onClick={() => toggle.mutate({ id: u.id, approve: !isStaff })}>
-                      {isStaff ? "Quitar acceso" : "Aprobar"}
-                    </Button>
-                  )}
+                  <div className="flex justify-end gap-2">{staffActions(u.roles, u.status).map((status) => <Button key={status} size="sm" variant={status === "approved" ? "default" : "outline"} disabled={toggle.isPending} onClick={() => {
+                    if (status !== "approved" && !confirm(`${status === "rejected" ? "¿Rechazar" : "¿Retirar"} el acceso de ${u.full_name || u.email}?`)) return;
+                    toggle.mutate({ id: u.id, status });
+                  }}>{status === "approved" ? <ShieldCheck className="size-4" /> : <ShieldX className="size-4" />}{status === "approved" ? "Aprobar" : status === "rejected" ? "Rechazar" : "Quitar acceso"}</Button>)}</div>
                 </TableCell>
               </TableRow>
             );

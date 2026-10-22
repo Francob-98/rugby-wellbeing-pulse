@@ -84,7 +84,7 @@ function WellnessPage() {
     <FormShell kicker="Pre-entreno" title="Wellness">
       <div className="space-y-5">
         <Section title="Jugador">
-          <PlayerPicker value={playerId} onChange={(id) => setPlayerId(id)} />
+          <PlayerPicker value={playerId} onChange={(id) => { setPlayerId(id); setLine(""); }} />
           <LinePicker value={line} onChange={setLine} />
           <div className="space-y-1.5">
             <Label>Fecha</Label>
