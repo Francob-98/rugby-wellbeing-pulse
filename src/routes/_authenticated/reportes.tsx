@@ -10,6 +10,7 @@ import { ClubBrand } from "@/components/ClubBrand";
 import { PostResponse, ReadableBar, ReportPain, TrafficLight, WellnessOverview } from "@/components/staff/ReportVisuals";
 import { PlayerPicker, usePlayers, type Player } from "@/components/PlayerPicker";
 import { Button } from "@/components/ui/button";
+import { PlayerResponseDates } from "@/components/staff/PlayerResponseDates";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TEAMS, PLAYER_LINES } from "@/lib/constants";
@@ -142,6 +143,8 @@ function ReportsPage() {
           <TeamReport ref={reportRef} date={date} team={team} phase={phase} players={players} wellness={dayWellness} sessions={daySessions} loading={loading} />
         </TabsContent>
         <TabsContent value="player">
+          <PlayerResponseDates playerId={playerId} phase={phase} line={line} date={date} dateTo={dateTo}
+            onSelect={(selectedDate) => { setDate(selectedDate); setDateTo(selectedDate); }} />
           <PlayerReport ref={reportRef} date={date} dateTo={dateTo} player={selectedPlayer} wellness={dayWellness} sessions={daySessions} loading={loading} />
         </TabsContent>
       </Tabs>

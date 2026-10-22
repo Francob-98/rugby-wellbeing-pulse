@@ -10,4 +10,5 @@
 - [x] Keep position selection in questionnaires only; RPE verified in a populated individual report and changing player requires line reconfirmation.
 - [x] Allow admins to reject staff access and revoke existing access; rejection, approval and revocation verified in UI with a temporary profile, then removed.
 - [x] Replace player deletion with Desafectado status; verified four sessions remain visible and the questionnaire excludes the inactive player, then restored original active status.
+- [ ] Add saved response dates to the individual report and verify selecting a date displays the player's corresponding responses.
 
