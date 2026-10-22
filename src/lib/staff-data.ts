@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { daysAgo, type SessionEntry, type WellnessEntry } from "./metrics";
 
 export function useEntries(days: number, playerId?: string) {
-  const since = daysAgo(Math.max(days, 28) - 1);
+  const since = daysAgo(Math.max(days, 35) - 1);
   return useQuery({
     queryKey: ["entries", since, playerId ?? "all"],
     queryFn: async () => {
