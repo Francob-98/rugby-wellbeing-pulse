@@ -7,4 +7,7 @@
 - [x] Make PDF sections continuous; downloaded populated general and differentiated reports and visually inspected all five pages, with no missing or clipped content.
 - [x] Wellness Diferenciados asks only motivo + zona (no restriction); verified a real pre-entreno submit and the staff tab shows "—" for restriction/evolution.
 - [x] Remove the GPS module entirely at the user's request (route, nav tab, report components, metrics and PDF extraction); database tables kept untouched.
+- [ ] Keep position selection in questionnaires only; unify effort terminology as RPE.
+- [ ] Allow admins to reject staff access and revoke existing access.
+- [ ] Replace player deletion with Desafectado status, preserving histories; verify populated flows.
 
