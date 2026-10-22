@@ -10,6 +10,8 @@
 <!-- LOVABLE:END -->
 
 - Reuse the shared `ClubBrand` and `ClubCrest` components for CBMM identity so the official crest remains consistent and restrained across screens.
+- Player lifecycle updates use the existing active flag, never deletion; staff history selectors include inactive players so departure preserves access to past responses.
+- Staff decisions are persisted separately and applied atomically by an admin-validated SQL RPC; user_roles remains the sole authorization source and admin accounts are protected.
 - Keep shareable coach reports as browser-rendered authenticated views exported locally to PNG or PDF so player data is not sent to another service.
 - Export reports from a fixed-width offscreen copy with embedded fonts; compose local PDFs with pdf-lib to avoid Worker package resolution and clipped browser-font layouts.
 - Apply offscreen positioning only to an uncaptured staging parent, never the captured report, because computed logical insets can produce blank PDF and PNG exports.

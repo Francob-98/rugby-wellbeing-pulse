@@ -34,8 +34,8 @@ function StaffShell() {
     return (
       <div className="flex min-h-screen items-center justify-center p-6">
         <div className="max-w-sm rounded-lg border border-border bg-card p-6 text-center">
-          <h1 className="font-display text-2xl font-bold uppercase">Cuenta pendiente</h1>
-          <p className="mt-2 text-sm text-muted-foreground">El administrador del staff tiene que aprobar tu acceso ({data?.email}).</p>
+          <h1 className="font-display text-2xl font-bold uppercase">{data?.accessStatus === "rejected" ? "Acceso rechazado" : data?.accessStatus === "revoked" ? "Acceso retirado" : "Cuenta pendiente"}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{data?.accessStatus === "rejected" || data?.accessStatus === "revoked" ? "Tu cuenta no tiene acceso al staff. Contactá al administrador si necesitás una revisión." : `El administrador del staff tiene que aprobar tu acceso (${data?.email}).`}</p>
           <Button variant="outline" className="mt-4" onClick={signOut}>Salir</Button>
         </div>
       </div>
