@@ -3,7 +3,6 @@ import { format, parseISO } from "date-fns";
 import { CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { BodyMap, zoneLabel } from "@/components/BodyMap";
 
 export function PlayerResponseDates({ playerId, phase, line, date, dateTo, onSelect }: {
   playerId: string;
@@ -18,13 +17,13 @@ export function PlayerResponseDates({ playerId, phase, line, date, dateTo, onSel
     enabled: Boolean(playerId),
     queryFn: async () => {
       async function readDates(table: "wellness_entries" | "session_entries") {
-        const entries: { id: string; entry_date: string; player_line: string | null; pain_zones: Record<string, number> | null }[] = [];
+        const entries: { id: string; entry_date: string; player_line: string | null }[] = [];
         for (let offset = 0; ; offset += 500) {
-          const result = await supabase.from(table).select("id, entry_date, player_line, pain_zones")
+          const result = await supabase.from(table).select("id, entry_date, player_line")
             .eq("player_id", playerId).order("entry_date", { ascending: false }).order("id")
             .range(offset, offset + 499);
           if (result.error) throw result.error;
-          entries.push(...(result.data as unknown as typeof entries));
+          entries.push(...result.data);
           if (result.data.length < 500) return entries;
         }
       }
@@ -34,7 +33,6 @@ export function PlayerResponseDates({ playerId, phase, line, date, dateTo, onSel
   });
 
   if (!playerId) return null;
-  const zones: Record<string, number> = {};
   const dates = new Map<string, { pre: number; post: number }>();
   for (const kind of ["pre", "post"] as const) {
     if (phase !== "all" && phase !== kind) continue;
@@ -42,9 +40,6 @@ export function PlayerResponseDates({ playerId, phase, line, date, dateTo, onSel
       if (line !== "all" && entry.player_line !== line) continue;
       const counts = dates.get(entry.entry_date) ?? { pre: 0, post: 0 };
       counts[kind] += 1;
-      if (date === dateTo && entry.entry_date === date) {
-        for (const [z, l] of Object.entries(entry.pain_zones ?? {})) zones[z] = Math.max(zones[z] ?? 0, Number(l));
-      }
       dates.set(entry.entry_date, counts);
     }
   }
@@ -79,15 +74,6 @@ export function PlayerResponseDates({ playerId, phase, line, date, dateTo, onSel
             );
           })}
         </ul>
-      )}
-      {dates.has(date) && date === dateTo && (
-        <div className="mt-4 rounded-md border border-border p-4" aria-label="Mapa de dolor de la fecha elegida">
-          <h3 className="mb-2 text-sm font-semibold">Dolor muscular el {format(parseISO(date), "dd/MM/yyyy")}</h3>
-          <div className="mx-auto max-w-sm"><BodyMap value={zones} /></div>
-          <p className="mt-2 text-sm">{Object.keys(zones).length
-            ? Object.entries(zones).map(([z, l]) => `${zoneLabel(z)} · ${["", "leve", "moderado", "intenso"][l] ?? l}`).join("; ")
-            : "Sin zonas de dolor marcadas en esta fecha."}</p>
-        </div>
       )}
     </section>
   );
