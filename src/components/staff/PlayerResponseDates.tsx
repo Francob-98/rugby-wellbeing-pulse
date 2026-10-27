@@ -3,7 +3,7 @@ import { format, parseISO } from "date-fns";
 import { CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { BodyMap, PainLegend, zoneLabel } from "@/components/BodyMap";
+import { BodyMap, zoneLabel } from "@/components/BodyMap";
 
 export function PlayerResponseDates({ playerId, phase, line, date, dateTo, onSelect }: {
   playerId: string;
@@ -84,7 +84,6 @@ export function PlayerResponseDates({ playerId, phase, line, date, dateTo, onSel
         <div className="mt-4 rounded-md border border-border p-4" aria-label="Mapa de dolor de la fecha elegida">
           <h3 className="mb-2 text-sm font-semibold">Dolor muscular el {format(parseISO(date), "dd/MM/yyyy")}</h3>
           <div className="mx-auto max-w-sm"><BodyMap value={zones} /></div>
-          <div className="mt-2 flex justify-center"><PainLegend /></div>
           <p className="mt-2 text-sm">{Object.keys(zones).length
             ? Object.entries(zones).map(([z, l]) => `${zoneLabel(z)} · ${["", "leve", "moderado", "intenso"][l] ?? l}`).join("; ")
             : "Sin zonas de dolor marcadas en esta fecha."}</p>
