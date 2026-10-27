@@ -26,6 +26,7 @@ function PlayerPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const [days, setDays] = useState(28);
+  const [painDate, setPainDate] = useState<string | null>(null);
   const { data: players = [] } = usePlayers();
   const player = players.find((p) => p.id === id);
   const { data, isLoading } = useEntries(days, id);
@@ -56,8 +57,11 @@ function PlayerPage() {
     ] : [];
     const comments = sR.filter((e) => e.comments).reverse();
     const lastPain = { ...(wR.at(-1)?.pain_zones ?? {}), ...(sR.at(-1)?.pain_zones ?? {}) };
-    return { daily, last, radar, comments, heat: painHeat([...wR, ...sR]), lastPain, sR, a: weeklyLoad(s) };
-  }, [data, days]);
+    const dayPain: Record<string, number> = {};
+    if (painDate) for (const e of [...wR, ...sR].filter((e) => e.entry_date === painDate))
+      for (const [z, l] of Object.entries(e.pain_zones ?? {})) dayPain[z] = Math.max(dayPain[z] ?? 0, Number(l));
+    return { daily, last, radar, comments, heat: painHeat([...wR, ...sR]), lastPain: painDate ? dayPain : lastPain, sR, a: weeklyLoad(s) };
+  }, [data, days, painDate]);
 
   const st = weeklyStatus(v.a.changePct);
 
@@ -146,6 +150,7 @@ function PlayerPage() {
           </div>
 
           <Panel title={`Sesiones guardadas (${v.sR.length})`}>
+            <p className="mb-2 text-xs text-muted-foreground">Tocá una fecha para ver su dolor en el mapa.</p>
             {v.sR.length ? (
               <>
                 <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -163,7 +168,8 @@ function PlayerPage() {
                       {(() => {
                         const max = Math.max(...v.sR.map((x) => x.load), 1);
                         return [...v.sR].reverse().map((s) => (
-                          <tr key={s.id} className="border-t border-border">
+                          <tr key={s.id} onClick={() => setPainDate(painDate === s.entry_date ? null : s.entry_date)} aria-selected={painDate === s.entry_date}
+                            className={`cursor-pointer border-t border-border hover:bg-muted/50 ${painDate === s.entry_date ? "bg-primary/10" : ""}`}>
                             <td className="py-2">{format(parseISO(s.entry_date), "dd/MM/yy")}</td>
                             <td>{s.team}</td>
                             <td>{s.session_type ?? "Entrenamiento"}</td>
@@ -182,8 +188,10 @@ function PlayerPage() {
           </Panel>
 
           <div className="grid gap-4 lg:grid-cols-3">
-            <Panel title="Dolor último registro">
+            <Panel title={painDate ? `Dolor del ${format(parseISO(painDate), "dd/MM/yy")}` : "Dolor último registro"}>
+              {painDate && <button onClick={() => setPainDate(null)} className="mb-2 text-xs text-primary underline">Volver al último registro</button>}
               <BodyMap value={v.lastPain} />
+              {painDate && !Object.keys(v.lastPain).length && <p className="mt-2 text-sm text-muted-foreground">Sin dolor reportado en esa fecha.</p>}
               <ul className="mt-2 space-y-1 text-sm">
                 {Object.entries(v.lastPain).map(([z, l]) => <li key={z} className="flex justify-between"><span>{zoneLabel(z)}</span><span>{["", "Leve", "Moderado", "Intenso"][l]}</span></li>)}
               </ul>
