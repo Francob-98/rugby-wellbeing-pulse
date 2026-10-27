@@ -24,7 +24,7 @@ export function PlayerResponseDates({ playerId, phase, line, date, dateTo, onSel
             .eq("player_id", playerId).order("entry_date", { ascending: false }).order("id")
             .range(offset, offset + 499);
           if (result.error) throw result.error;
-          entries.push(...result.data);
+          entries.push(...(result.data as unknown as typeof entries));
           if (result.data.length < 500) return entries;
         }
       }
