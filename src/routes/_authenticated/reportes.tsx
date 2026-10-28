@@ -153,9 +153,30 @@ function ReportsPage() {
           <TeamReport ref={reportRef} date={date} team={team} phase={phase} players={players} wellness={dayWellness} sessions={daySessions} loading={loading} />
         </TabsContent>
         <TabsContent value="player">
-          <PlayerResponseDates playerId={playerId} phase={phase} line={line} date={date} dateTo={dateTo}
-            onSelect={(selectedDate) => { setDate(selectedDate); setDateTo(selectedDate); }} />
-          <PlayerReport ref={reportRef} date={date} dateTo={dateTo} player={selectedPlayer} wellness={dayWellness} sessions={daySessions} loading={loading} />
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <div className="flex rounded-md border border-border bg-card p-1" role="group" aria-label="Tipo de vista individual">
+              <button onClick={() => setPlayerView("daily")} aria-pressed={playerView === "daily"}
+                className={`rounded px-3 py-1.5 text-sm font-medium ${playerView === "daily" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>Por fecha</button>
+              <button onClick={() => setPlayerView("monthly")} aria-pressed={playerView === "monthly"}
+                className={`rounded px-3 py-1.5 text-sm font-medium ${playerView === "monthly" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>Mensual</button>
+            </div>
+            {playerView === "monthly" && (
+              <label className="flex items-center gap-2 rounded-md border border-input bg-background px-3">
+                <CalendarDays className="size-4 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Mes</span>
+                <input type="month" value={month} max={today().slice(0, 7)} onChange={(event) => setMonth(event.target.value)} className="h-10 bg-transparent text-sm outline-none" />
+              </label>
+            )}
+          </div>
+          {playerView === "daily" ? (
+            <>
+              <PlayerResponseDates playerId={playerId} phase={phase} line={line} date={date} dateTo={dateTo}
+                onSelect={(selectedDate) => { setDate(selectedDate); setDateTo(selectedDate); }} />
+              <PlayerReport ref={reportRef} date={date} dateTo={dateTo} player={selectedPlayer} wellness={dayWellness} sessions={daySessions} loading={loading} />
+            </>
+          ) : (
+            <MonthlyMosaic ref={reportRef} month={month} player={selectedPlayer} wellness={monthWellness} sessions={monthSessions} loading={loadingMonth} />
+          )}
         </TabsContent>
       </Tabs>
     </div>
