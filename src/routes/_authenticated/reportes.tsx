@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState, type Ref } from "react";
 import { exportReport } from "@/lib/report-export";
-import { format, parseISO } from "date-fns";
+import { endOfMonth, format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarDays, Download, FileText, UserRound, Users } from "lucide-react";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import { PostResponse, ReadableBar, ReportPain, TrafficLight, WellnessOverview }
 import { PlayerPicker, usePlayers, type Player } from "@/components/PlayerPicker";
 import { Button } from "@/components/ui/button";
 import { PlayerResponseDates } from "@/components/staff/PlayerResponseDates";
+import { MonthlyMosaic } from "@/components/staff/MonthlyMosaic";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TEAMS, PLAYER_LINES } from "@/lib/constants";
@@ -41,11 +42,16 @@ function ReportsPage() {
   const [playerId, setPlayerId] = useState("");
   const [phase, setPhase] = useState("all");
   const [line, setLine] = useState("all");
+  const [playerView, setPlayerView] = useState<"daily" | "monthly">("daily");
+  const [month, setMonth] = useState(today().slice(0, 7));
   const [exporting, setExporting] = useState<"png" | "pdf" | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const dateTo = mode === "player" && dateToRaw > date ? dateToRaw : date;
   const { data: players = [], isLoading: loadingPlayers } = usePlayers();
   const { data, isLoading: loadingEntries } = useReportEntries(date, dateTo);
+  const monthStart = `${month}-01`;
+  const monthEnd = format(endOfMonth(parseISO(monthStart)), "yyyy-MM-dd");
+  const { data: monthData, isLoading: loadingMonth } = useReportEntries(monthStart, monthEnd);
   const inRange = (d: string) => d >= date && d <= dateTo;
 
   const dayWellness = useMemo(
@@ -57,6 +63,9 @@ function ReportsPage() {
     [data, date, dateTo, phase, line],
   );
   const selectedPlayer = players.find((player) => player.id === playerId);
+  const monthly = mode === "player" && playerView === "monthly";
+  const monthWellness = (monthData?.wellness ?? []).filter((entry) => line === "all" || entry.player_line === line);
+  const monthSessions = (monthData?.sessions ?? []).filter((entry) => line === "all" || entry.player_line === line);
 
   const download = async (format: "png" | "pdf") => {
     const node = reportRef.current;
@@ -64,7 +73,8 @@ function ReportsPage() {
     setExporting(format);
     try {
       const subject = mode === "team" ? (team === "all" ? "plantel" : team) : selectedPlayer?.full_name ?? "jugador";
-      await exportReport(node, format, `CBMM-${subject.replaceAll(" ", "-")}-${date}${dateTo !== date ? `_a_${dateTo}` : ""}-${phase}${line === "all" ? "" : `-${line}`}`);
+      const stamp = monthly ? `${month}-mensual` : `${date}${dateTo !== date ? `_a_${dateTo}` : ""}`;
+      await exportReport(node, format, `CBMM-${subject.replaceAll(" ", "-")}-${stamp}-${phase}${line === "all" ? "" : `-${line}`}`);
       toast.success(`${format.toUpperCase()} descargado`);
     } catch {
       toast.error("No se pudo crear el informe. Intentá nuevamente.");
@@ -143,9 +153,30 @@ function ReportsPage() {
           <TeamReport ref={reportRef} date={date} team={team} phase={phase} players={players} wellness={dayWellness} sessions={daySessions} loading={loading} />
         </TabsContent>
         <TabsContent value="player">
-          <PlayerResponseDates playerId={playerId} phase={phase} line={line} date={date} dateTo={dateTo}
-            onSelect={(selectedDate) => { setDate(selectedDate); setDateTo(selectedDate); }} />
-          <PlayerReport ref={reportRef} date={date} dateTo={dateTo} player={selectedPlayer} wellness={dayWellness} sessions={daySessions} loading={loading} />
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <div className="flex rounded-md border border-border bg-card p-1" role="group" aria-label="Tipo de vista individual">
+              <button onClick={() => setPlayerView("daily")} aria-pressed={playerView === "daily"}
+                className={`rounded px-3 py-1.5 text-sm font-medium ${playerView === "daily" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>Por fecha</button>
+              <button onClick={() => setPlayerView("monthly")} aria-pressed={playerView === "monthly"}
+                className={`rounded px-3 py-1.5 text-sm font-medium ${playerView === "monthly" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>Mensual</button>
+            </div>
+            {playerView === "monthly" && (
+              <label className="flex items-center gap-2 rounded-md border border-input bg-background px-3">
+                <CalendarDays className="size-4 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Mes</span>
+                <input type="month" value={month} max={today().slice(0, 7)} onChange={(event) => setMonth(event.target.value)} className="h-10 bg-transparent text-sm outline-none" />
+              </label>
+            )}
+          </div>
+          {playerView === "daily" ? (
+            <>
+              <PlayerResponseDates playerId={playerId} phase={phase} line={line} date={date} dateTo={dateTo}
+                onSelect={(selectedDate) => { setDate(selectedDate); setDateTo(selectedDate); }} />
+              <PlayerReport ref={reportRef} date={date} dateTo={dateTo} player={selectedPlayer} wellness={dayWellness} sessions={daySessions} loading={loading} />
+            </>
+          ) : (
+            <MonthlyMosaic ref={reportRef} month={month} player={selectedPlayer} wellness={monthWellness} sessions={monthSessions} loading={loadingMonth} />
+          )}
         </TabsContent>
       </Tabs>
     </div>
