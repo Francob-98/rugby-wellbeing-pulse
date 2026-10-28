@@ -415,6 +415,10 @@ export type Database = {
         Args: { _status: string; _user_id: string }
         Returns: undefined
       }
+      delete_player_permanently: {
+        Args: { _player_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
