@@ -45,7 +45,6 @@ function StaffShell() {
     { to: "/panel", label: "General", icon: LayoutDashboard },
     { to: "/jugador", label: "Individual", icon: User },
     { to: "/plantel", label: "Plantel", icon: Users },
-    { to: "/analisis", label: "Análisis IA", icon: Sparkles },
     { to: "/diferenciados", label: "Diferenciados", icon: HeartPulse },
     { to: "/reportes", label: "Informes", icon: FileImage },
   ] as const;
