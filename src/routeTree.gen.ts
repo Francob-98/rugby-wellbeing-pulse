@@ -14,7 +14,6 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as PostEntrenoRouteImport } from './routes/post-entreno'
 import { Route as WellnessRouteImport } from './routes/wellness'
-import { Route as AuthenticatedAnalisisRouteImport } from './routes/_authenticated/analisis'
 import { Route as AuthenticatedDiferenciadosRouteImport } from './routes/_authenticated/diferenciados'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
 import { Route as AuthenticatedPlantelRouteImport } from './routes/_authenticated/plantel'
@@ -46,11 +45,6 @@ const WellnessRoute = WellnessRouteImport.update({
   id: '/wellness',
   path: '/wellness',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedAnalisisRoute = AuthenticatedAnalisisRouteImport.update({
-  id: '/analisis',
-  path: '/analisis',
-  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDiferenciadosRoute =
   AuthenticatedDiferenciadosRouteImport.update({
@@ -96,7 +90,6 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/post-entreno': typeof PostEntrenoRoute
   '/wellness': typeof WellnessRoute
-  '/analisis': typeof AuthenticatedAnalisisRoute
   '/diferenciados': typeof AuthenticatedDiferenciadosRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/plantel': typeof AuthenticatedPlantelRoute
@@ -110,7 +103,6 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/post-entreno': typeof PostEntrenoRoute
   '/wellness': typeof WellnessRoute
-  '/analisis': typeof AuthenticatedAnalisisRoute
   '/diferenciados': typeof AuthenticatedDiferenciadosRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/plantel': typeof AuthenticatedPlantelRoute
@@ -126,7 +118,6 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/post-entreno': typeof PostEntrenoRoute
   '/wellness': typeof WellnessRoute
-  '/_authenticated/analisis': typeof AuthenticatedAnalisisRoute
   '/_authenticated/diferenciados': typeof AuthenticatedDiferenciadosRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/plantel': typeof AuthenticatedPlantelRoute
@@ -142,7 +133,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/post-entreno'
     | '/wellness'
-    | '/analisis'
     | '/diferenciados'
     | '/panel'
     | '/plantel'
@@ -156,7 +146,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/post-entreno'
     | '/wellness'
-    | '/analisis'
     | '/diferenciados'
     | '/panel'
     | '/plantel'
@@ -171,7 +160,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/post-entreno'
     | '/wellness'
-    | '/_authenticated/analisis'
     | '/_authenticated/diferenciados'
     | '/_authenticated/panel'
     | '/_authenticated/plantel'
@@ -226,13 +214,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WellnessRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/analisis': {
-      id: '/_authenticated/analisis'
-      path: '/analisis'
-      fullPath: '/analisis'
-      preLoaderRoute: typeof AuthenticatedAnalisisRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/diferenciados': {
       id: '/_authenticated/diferenciados'
       path: '/diferenciados'
@@ -286,7 +267,6 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAnalisisRoute: typeof AuthenticatedAnalisisRoute
   AuthenticatedDiferenciadosRoute: typeof AuthenticatedDiferenciadosRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedPlantelRoute: typeof AuthenticatedPlantelRoute
@@ -297,7 +277,6 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAnalisisRoute: AuthenticatedAnalisisRoute,
   AuthenticatedDiferenciadosRoute: AuthenticatedDiferenciadosRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedPlantelRoute: AuthenticatedPlantelRoute,

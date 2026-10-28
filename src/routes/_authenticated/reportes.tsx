@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState, type Ref } from "react";
 import { exportReport } from "@/lib/report-export";
-import { format, parseISO } from "date-fns";
+import { endOfMonth, format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarDays, Download, FileText, UserRound, Users } from "lucide-react";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import { PostResponse, ReadableBar, ReportPain, TrafficLight, WellnessOverview }
 import { PlayerPicker, usePlayers, type Player } from "@/components/PlayerPicker";
 import { Button } from "@/components/ui/button";
 import { PlayerResponseDates } from "@/components/staff/PlayerResponseDates";
+import { MonthlyMosaic } from "@/components/staff/MonthlyMosaic";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TEAMS, PLAYER_LINES } from "@/lib/constants";
