@@ -63,6 +63,9 @@ function ReportsPage() {
     [data, date, dateTo, phase, line],
   );
   const selectedPlayer = players.find((player) => player.id === playerId);
+  const monthly = mode === "player" && playerView === "monthly";
+  const monthWellness = (monthData?.wellness ?? []).filter((entry) => line === "all" || entry.player_line === line);
+  const monthSessions = (monthData?.sessions ?? []).filter((entry) => line === "all" || entry.player_line === line);
 
   const download = async (format: "png" | "pdf") => {
     const node = reportRef.current;
@@ -70,7 +73,8 @@ function ReportsPage() {
     setExporting(format);
     try {
       const subject = mode === "team" ? (team === "all" ? "plantel" : team) : selectedPlayer?.full_name ?? "jugador";
-      await exportReport(node, format, `CBMM-${subject.replaceAll(" ", "-")}-${date}${dateTo !== date ? `_a_${dateTo}` : ""}-${phase}${line === "all" ? "" : `-${line}`}`);
+      const stamp = monthly ? `${month}-mensual` : `${date}${dateTo !== date ? `_a_${dateTo}` : ""}`;
+      await exportReport(node, format, `CBMM-${subject.replaceAll(" ", "-")}-${stamp}-${phase}${line === "all" ? "" : `-${line}`}`);
       toast.success(`${format.toUpperCase()} descargado`);
     } catch {
       toast.error("No se pudo crear el informe. Intentá nuevamente.");
