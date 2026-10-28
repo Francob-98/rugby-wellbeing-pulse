@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Copy, UserMinus, UserPlus, ShieldCheck, ShieldX } from "lucide-react";
+import { Copy, UserMinus, UserPlus, ShieldCheck, ShieldX, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePlayers } from "@/components/PlayerPicker";
 import { useMyRoles } from "@/lib/staff-data";
@@ -58,6 +58,19 @@ function PlantelPage() {
     finally { setUpdating(null); }
   };
 
+  const remove = async (id: string, name: string) => {
+    if (!confirm(`¿Eliminar definitivamente a ${name}? Se borrarán también todas sus respuestas e historial. Esta acción no se puede deshacer.`)) return;
+    if (prompt(`Para confirmar, escribí ELIMINAR`) !== "ELIMINAR") return;
+    setUpdating(id);
+    try {
+      const { error } = await supabase.rpc("delete_player_permanently", { _player_id: id });
+      if (error) throw error;
+      toast.success(`${name} eliminado con todo su historial`);
+      await refresh();
+    } catch { toast.error("No se pudo eliminar"); }
+    finally { setUpdating(null); }
+  };
+
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const copy = (path: string) => { navigator.clipboard.writeText(origin + path); toast.success("Link copiado"); };
   const shown = players.filter((p) => p.full_name.toLowerCase().includes(filter.toLowerCase()) || p.team.toLowerCase().includes(filter.toLowerCase()));
@@ -95,7 +108,7 @@ function PlantelPage() {
                   <TableRow key={p.id}>
                     <TableCell className="font-medium">{p.full_name}</TableCell>
                     <TableCell className={p.active ? "text-success" : "text-muted-foreground"}>{p.active ? "Activo" : "Desafectado"}</TableCell>
-                    <TableCell className="text-right"><Button size="sm" variant="outline" disabled={updating !== null} onClick={() => setActive(p.id, p.full_name, !p.active)}>{p.active ? <UserMinus className="size-4" /> : <UserPlus className="size-4" />}{p.active ? "Desafectar" : "Reincorporar"}</Button></TableCell>
+                    <TableCell className="text-right"><div className="flex justify-end gap-2"><Button size="sm" variant="outline" disabled={updating !== null} onClick={() => setActive(p.id, p.full_name, !p.active)}>{p.active ? <UserMinus className="size-4" /> : <UserPlus className="size-4" />}{p.active ? "Desafectar" : "Reincorporar"}</Button><Button size="sm" variant="destructive" disabled={updating !== null} onClick={() => remove(p.id, p.full_name)}><Trash2 className="size-4" />Eliminar</Button></div></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
