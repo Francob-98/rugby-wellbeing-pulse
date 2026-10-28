@@ -42,11 +42,16 @@ function ReportsPage() {
   const [playerId, setPlayerId] = useState("");
   const [phase, setPhase] = useState("all");
   const [line, setLine] = useState("all");
+  const [playerView, setPlayerView] = useState<"daily" | "monthly">("daily");
+  const [month, setMonth] = useState(today().slice(0, 7));
   const [exporting, setExporting] = useState<"png" | "pdf" | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const dateTo = mode === "player" && dateToRaw > date ? dateToRaw : date;
   const { data: players = [], isLoading: loadingPlayers } = usePlayers();
   const { data, isLoading: loadingEntries } = useReportEntries(date, dateTo);
+  const monthStart = `${month}-01`;
+  const monthEnd = format(endOfMonth(parseISO(monthStart)), "yyyy-MM-dd");
+  const { data: monthData, isLoading: loadingMonth } = useReportEntries(monthStart, monthEnd);
   const inRange = (d: string) => d >= date && d <= dateTo;
 
   const dayWellness = useMemo(
