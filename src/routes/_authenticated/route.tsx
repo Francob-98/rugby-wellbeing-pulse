@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { FileImage, LayoutDashboard, User, Users, LogOut, Sparkles, HeartPulse } from "lucide-react";
+import { FileImage, LayoutDashboard, User, Users, LogOut, HeartPulse } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyRoles } from "@/lib/staff-data";
 import { Button } from "@/components/ui/button";
