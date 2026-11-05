@@ -25,7 +25,7 @@ function Index() {
   return (
     <>
     {!introComplete && <ClubIntro onComplete={finishIntro} />}
-    <div inert={!introComplete} aria-hidden={!introComplete} className={`stripe-bg flex min-h-screen flex-col bg-pitch text-pitch-foreground ${introComplete ? "club-home-ready" : "club-home-waiting"}`}>
+    <div inert={!introComplete} aria-hidden={!introComplete} className="club-home stripe-bg flex min-h-screen flex-col bg-pitch text-pitch-foreground">
       <div className="club-home-content mx-auto flex w-full max-w-xl flex-1 flex-col px-6 py-10">
         <ClubBrand className="text-pitch-foreground" />
         <p className="mt-8 font-display text-sm font-semibold uppercase tracking-[0.2em] text-pitch-foreground/60">Club Biblioteca Mariano Moreno</p>

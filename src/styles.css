@@ -130,7 +130,7 @@
 }
 
 .club-intro {
-  animation: club-intro-exit 600ms ease-in 2200ms both;
+  animation: club-intro-exit 1000ms ease-in-out 2200ms both;
 }
 
 .club-intro-crest {
@@ -146,19 +146,15 @@
   animation: club-identity-enter 800ms ease-out 450ms both;
 }
 
-.club-home-waiting {
-  visibility: hidden;
+.club-home .club-home-content > * {
+  animation: club-identity-enter 900ms ease-out 2200ms both;
 }
 
-.club-home-ready .club-home-content > * {
-  animation: club-identity-enter 750ms ease-out both;
-}
-
-.club-home-ready .club-home-content > :nth-child(2) { animation-delay: 100ms; }
-.club-home-ready .club-home-content > :nth-child(3) { animation-delay: 200ms; }
-.club-home-ready .club-home-content > :nth-child(4) { animation-delay: 300ms; }
-.club-home-ready .club-home-content > :nth-child(5) { animation-delay: 400ms; }
-.club-home-ready .club-home-content > :nth-child(6) { animation-delay: 500ms; }
+.club-home .club-home-content > :nth-child(2) { animation-delay: 2300ms; }
+.club-home .club-home-content > :nth-child(3) { animation-delay: 2400ms; }
+.club-home .club-home-content > :nth-child(4) { animation-delay: 2500ms; }
+.club-home .club-home-content > :nth-child(5) { animation-delay: 2600ms; }
+.club-home .club-home-content > :nth-child(6) { animation-delay: 2700ms; }
 
 @keyframes club-identity-enter {
   from { opacity: 0; transform: translateY(12px); }
@@ -174,7 +170,7 @@
   .club-intro-crest,
   .club-intro-rule,
   .club-intro-name,
-  .club-home-ready .club-home-content > * {
+  .club-home .club-home-content > * {
     animation: none;
   }
 }

@@ -3,7 +3,7 @@ import { ClubCrest } from "@/components/ClubBrand";
 
 export function ClubIntro({ onComplete }: { onComplete: () => void }) {
   useEffect(() => {
-    const timer = window.setTimeout(onComplete, 2800);
+    const timer = window.setTimeout(onComplete, 3200);
     return () => window.clearTimeout(timer);
   }, [onComplete]);
 
