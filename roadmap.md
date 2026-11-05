@@ -13,4 +13,5 @@
 - [x] Add saved response dates to the individual report; selecting 20/10/2026 displayed the player's real pre/post responses and updated both date fields, with no runtime errors.
 - [x] Remove the AI analysis section (route, nav, components, server functions) at the user's request.
 - [x] Add monthly mosaic view to the individual report (pain map, wellness bars, load bars, highlighted calendar); verified with real data and a downloaded 3-page PDF.
+- [ ] Add and verify a brief club introduction followed by a progressive home-page reveal.
 

@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 - Reuse the shared `ClubBrand` and `ClubCrest` components for CBMM identity so the official crest remains consistent and restrained across screens.
+- Keep the timed club introduction local to the home route and reuse ClubCrest; gate home interactions until the introduction finishes and respect reduced-motion preferences.
 - Player lifecycle updates use the existing active flag, never deletion; staff history selectors include inactive players so departure preserves access to past responses.
 - Staff decisions are persisted separately and applied atomically by an admin-validated SQL RPC; user_roles remains the sole authorization source and admin accounts are protected.
 - Keep shareable coach reports as browser-rendered authenticated views exported locally to PNG or PDF so player data is not sent to another service.
