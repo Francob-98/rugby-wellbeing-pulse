@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Sun, Flag, LineChart } from "lucide-react";
+import { useCallback, useState } from "react";
 import { ClubBrand } from "@/components/ClubBrand";
+import { ClubIntro } from "@/components/ClubIntro";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -17,9 +19,14 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const [introComplete, setIntroComplete] = useState(false);
+  const finishIntro = useCallback(() => setIntroComplete(true), []);
+
   return (
-    <div className="stripe-bg flex min-h-screen flex-col bg-pitch text-pitch-foreground">
-      <div className="mx-auto flex w-full max-w-xl flex-1 flex-col px-6 py-10">
+    <>
+    {!introComplete && <ClubIntro onComplete={finishIntro} />}
+    <div inert={!introComplete} aria-hidden={!introComplete} className={`stripe-bg flex min-h-screen flex-col bg-pitch text-pitch-foreground ${introComplete ? "club-home-ready" : "club-home-waiting"}`}>
+      <div className="club-home-content mx-auto flex w-full max-w-xl flex-1 flex-col px-6 py-10">
         <ClubBrand className="text-pitch-foreground" />
         <p className="mt-8 font-display text-sm font-semibold uppercase tracking-[0.2em] text-pitch-foreground/60">Club Biblioteca Mariano Moreno</p>
         <h1 className="mt-4 font-display text-6xl font-bold uppercase leading-[0.9]">
@@ -49,5 +56,6 @@ function Index() {
         </Link>
       </div>
     </div>
+    </>
   );
 }
